@@ -16,5 +16,5 @@ rev = "v4.21.0-rc3"
 name = "HilbertCurveBlogPost"
 
 [[lean_exe]]
-name = "generate-post"
+name = "hilbertcurveblogpost"
 root = "Main"

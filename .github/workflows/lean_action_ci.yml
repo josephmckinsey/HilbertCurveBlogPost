@@ -12,3 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: leanprover/lean-action@v1
+      - name: verify `lake exe` works
+        run: |
+          lake exe hilbertcurveblogpost
+          rm _site/index.html
