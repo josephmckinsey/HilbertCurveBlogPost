@@ -1,0 +1,20 @@
+name = "HilbertCurveBlogPost"
+version = "0.1.0"
+defaultTargets = ["hilbertcurveblogpost"]
+
+[[require]]
+name = "verso"
+scope = "leanprover"
+rev = "v4.21.0-rc3"
+
+[[require]]
+name = "hilbert-curve"
+git = "https://github.com/josephmckinsey/LeanHilbertCurves.git"
+rev = "v4.21.0-rc3"
+
+[[lean_lib]]
+name = "HilbertCurveBlogPost"
+
+[[lean_exe]]
+name = "generate-post"
+root = "Main"
