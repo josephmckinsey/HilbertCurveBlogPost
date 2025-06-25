@@ -10,7 +10,7 @@ rev = "v4.21.0-rc3"
 [[require]]
 name = "hilbert-curve"
 git = "https://github.com/josephmckinsey/LeanHilbertCurves.git"
-rev = "v4.21.0-rc3"
+rev = "main"
 
 [[lean_lib]]
 name = "HilbertCurveBlogPost"

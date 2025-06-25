@@ -1,0 +1,5 @@
+- I have trouble importing ProofWidgets at the same time as Verso. There's some sort of syntax conflict between the div elements
+that causes a compilation errors. I have no idea how to solve that, so I commented out that code and moved on with my life.
+
+- I have no idea how to write a center div element, so I've resorted to separate definitions with the appropriate
+style attributes, etc.

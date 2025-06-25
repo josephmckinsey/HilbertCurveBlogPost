@@ -1,10 +1,6 @@
-/-
-Copyright (c) 2023-2024 Lean FRO LLC. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Author: David Thrane Christiansen
--/
-
 import VersoBlog
+import HilbertCurveBlogPost.VersoProofWidget
+import HilbertCurve.Pictures
 open Verso Genre Blog
 open Verso.Doc
 
@@ -37,6 +33,9 @@ block_component gallery where
     pure {{<div class="red-box" id={{id}}>{{← contents.mapM goB}}</div>}}
 
 
+/-
+
+-- This fails with a parse error: WHY???
 block_component image where
   toHtml id data _goI goB contents := do
     let .arr #[.str alt, .str url] := data
@@ -44,10 +43,12 @@ block_component image where
         pure .empty
     pure {{
       <div class="image-item" id={{id}}>
-        <img href={{url}} alt={{alt}}/>
+        <img href={{url}} alt={{alt}}>
         <div class="description">{{← contents.mapM goB}}</div>
       </div>
     }}
+
+-/
 
 
 @[directive_expander gallery]
@@ -109,6 +110,24 @@ def exampleHtml: Verso.Output.Html := {{
   <p>"Hi therE!"</p>
 }}
 
+def example2Html : ProofWidgets.Html := (
+  ProofWidgets.Html.text "Hi"
+)
+
+def example2RealHtml : Verso.Output.Html := ProofWidgets.pwHtmlToVersoHtml example2Html
+
+def Verso.Output.Html.addStyle (style : String): Verso.Output.Html → Verso.Output.Html
+| .tag (name : String) (attrs : Array (String × String)) contents =>
+  .tag name (attrs.push ("style", style)) contents
+| x => x
+
+def hilbert_example : Verso.Output.Html :=
+  (ProofWidgets.pwHtmlToVersoHtml
+    (HilbertCurve.compare_hilbert_curves 2 3).toHtml
+  ).addStyle "max-width: 50%; margin: 0 auto; display: block;"
+
+
+
 #doc (Page) "A Verso Blog" =>
 
 Here's an example blog.
@@ -144,14 +163,6 @@ It contains things. {button ""}[like a button! *hooray!*]
 
 :::
 
-:::gallery
-
-: ![abc](abc)
-
-  bar
-
-:::
-
 ::::blob exampleHtml
 ::::
 
@@ -162,3 +173,8 @@ Here's a button
 and a paragraph
 
 :::
+
+This should be an SVG:
+
+::::blob hilbert_example
+::::
