@@ -5,7 +5,7 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "325dc26792e216989d0a713696a698db04e9d7b6",
+   "rev": "74e3abd7df309371272c5fcc273c9b7f778f79b9",
    "name": "«hilbert-curve»",
    "manifestFile": "lake-manifest.json",
    "inputRev": "main",

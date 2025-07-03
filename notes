@@ -3,3 +3,7 @@ that causes a compilation errors. I have no idea how to solve that, so I comment
 
 - I have no idea how to write a center div element, so I've resorted to separate definitions with the appropriate
 style attributes, etc.
+
+- I had to use #exit to quit the lean compilation so that I could type without serious lag.
+
+- I wrote a custom script `transform_dollars.py` that I invoke from a VS-code extension "Edit With Shell Command" to convert Markdown LaTeX to normal code. I would like it something like this was automatic or whatever, because it's the only real difference I care about.
