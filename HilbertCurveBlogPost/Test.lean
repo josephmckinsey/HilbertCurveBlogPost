@@ -120,7 +120,7 @@ def example2RealHtml : Verso.Output.Html := ProofWidgets.pwHtmlToVersoHtml examp
 
 def Verso.Output.Html.addAttrs (attrList : Array (String × String)) : Verso.Output.Html → Verso.Output.Html
 | .tag (name : String) (attrs : Array (String × String)) contents =>
-  .tag name (attrs.append attrList) contents
+  .tag name (attrList.append attrs) contents
 | x => x
 
 
@@ -144,23 +144,31 @@ def hamster_together : Verso.Output.Html := Verso.Output.Html.tag "img" #[
   ("style", "max-width: 50%; margin: 0 auto; display: block;")
 ] (.text false "")
 
-def hilbert_curve_3 : Verso.Output.Html :=
+def verso_hilbert_curve (i : ℕ) : Verso.Output.Html :=
   (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_svg 3).toHtml
+    (HilbertCurve.hilbert_curve_svg i).toHtml
   ).addAttrs
-    #[("style", "max-width: 50%; margin: 0 auto; display: block;"),
-    ("alt", "A simple example of the 3rd iteration of the Hilbert Curve.")]
+    #[("alt", s!"A simple example of iteration {i} of the Hilbert Curve.")]
+
+def hilbert_curve_123 : Verso.Output.Html :=
+  .seq <| #[1, 2, 3, 4].map (fun i =>
+  (verso_hilbert_curve i).addAttrs #[("width", "20%"), ("height", "20%"), ("viewBox", "0 0 400 400")])
+
+def hilbert_curve_3 : Verso.Output.Html :=
+  (verso_hilbert_curve 3).addAttrs
+  #[("style", "max-width: 50%; margin: 0 auto; display: block;")]
 
 #html (HilbertCurve.hilbert_curve_with_points 2).toHtml
 #html (HilbertCurve.hilbert_curve_squares_svg 2).toHtml
 #html (HilbertCurve.hilbert_curve_squares_svg 3).toHtml
 
 def hilbert_curve_red_squares : Verso.Output.Html :=
+  .seq <| #[1, 2, 3].map (fun i =>
   (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_with_points 2 (.abs 0.03)).toHtml
+    (HilbertCurve.hilbert_curve_with_points i (.abs 4)).toHtml
   ).addAttrs
-    #[("style", "max-width: 50%; margin: 0 auto; display: block;"),
-    ("alt", "The 2nd iteration of the hilbert curve, where the curve connects squares.")]
+    #[("width", "25%"), ("height", "25%"), ("viewBox", "0 0 400 400"),
+    ("alt", "The 2nd iteration of the hilbert curve, where the curve connects squares.")])
 
 def hilbert_curve_rainbow2 : Verso.Output.Html :=
   (ProofWidgets.pwHtmlToVersoHtml
@@ -180,7 +188,7 @@ def hilbert_curve_rainbow3 : Verso.Output.Html :=
 
 def hilbert_curve_comparison23 : Verso.Output.Html :=
   (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.compare_hilbert_curves 2 3 (.abs 0.04) (.abs 0.02)).toHtml
+    (HilbertCurve.compare_hilbert_curves 2 3 (.abs 6) (.abs 2)).toHtml
   ).addAttrs
     #[("style", "max-width: 60%; margin: 0 auto; display: block;"),
     ("alt", "A comparison of the 2nd to 3rd iteration of the hilbert curve.
@@ -188,7 +196,7 @@ def hilbert_curve_comparison23 : Verso.Output.Html :=
 
 def hilbert_curve_comparison34 : Verso.Output.Html :=
   (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.compare_hilbert_curves 3 4 (.abs 0.04) (.abs 0.02)).toHtml
+    (HilbertCurve.compare_hilbert_curves 3 4 (.abs 6) (.abs 2)).toHtml
   ).addAttrs
     #[("style", "max-width: 60%; margin: 0 auto; display: block;"),
     ("alt", "A comparison of the 3rd to 4th iteration of the hilbert curve.
@@ -208,12 +216,12 @@ def a_big_square : Verso.Output.Html :=
 
 open Verso.Output.Html in
 def displacement_plot : Verso.Output.Html := Verso.Output.Html.tag "img" #[
-  ("src", "hilbertcurve/holderplot.svg"),
+  ("src", "hilbertcurve/holderplot.png"),
   ("alt", "A plot of |H(t)| and 2 sqrt(t). The latter bounds |H(t)| even near 0"),
   ("style", "max-width: 50%; margin: 0 auto; display: block;")
 ] (.text false "")
 
-#doc (Page) "Formalizing Hilbert Curves" =>
+#doc (Page) "Formalizing Hilbert Curves in Lean" =>
 
 > "Everyone understands what a curve is, until they study enough math to become confused." -- Matt Iverson's friend from highschool?
 
@@ -221,7 +229,7 @@ Picture a curve. Your curve is hopefully continuous and can be drawn with a penc
 
 The Hilbert curve is created by a taking a sequence of finer discrete versions, interpolating them, and then taking the limit. The precise construction ensures continuity of the final limit. Our discrete versions by themselves are very useful: they provide a sort-of continuous mapping of integers to 2D coordinates. My current favorite application of Hilbert curves is the [S2 Geometry](http://s2geometry.io/), since it uses Hilbert curves to divide up the Earth into a 1D representation, but every datum ends up as a mildly curvy square on the Earth. The same principles can be used to create other space filling curves tuned for data visualization or others such as [this visualization of ISBNs](https://phiresky.github.io/blog/2025/visualizing-all-books-in-isbn-space/) or [IP addresses](https://davidchall.github.io/ggip/articles/visualizing-ip-data.html).
 
-::::blob hilbert_curve_3
+::::blob hilbert_curve_123
 ::::
 
 We'll go through a definition of the Hilbert curve along with the actually interesting theorems and proofs.  Then I'll show you how I formalized these into the interactive theorem prover Lean, hopefully spelling out the geometric intuition that humans don't need explained. Then I'll show you a few more of the interesting properties that become obvious once you formalize a theory in Lean: continuity bounds and computabil1. Do not mention the details of the transformations
