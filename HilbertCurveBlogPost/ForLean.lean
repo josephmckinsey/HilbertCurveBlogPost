@@ -1,6 +1,5 @@
 import VersoBlog
-import HilbertCurveBlogPost.VersoProofWidget
-import HilbertCurve.Pictures
+import HilbertCurveBlogPost.CommonElements
 import HilbertCurve
 
 open Verso Genre Blog
@@ -8,232 +7,31 @@ open Verso.Doc
 
 set_option pp.rawOnError true
 
+-- I removed some definitions, and now this is necessary...
+set_option maxHeartbeats 800000
 
-section
-open Verso Doc Elab ArgParse
-open Lean
-open Verso Output Html
-open Template
-
-@[block_component redBox]
-def redBox : BlockComponent where
-  toHtml id _data _goI goB contents := do
-    saveCss (s!"#{id}:hover " ++ "{ border: 5px solid red; }")
-    saveCss ".red-box { border: 2px solid red; }"
-    pure {{<div class="red-box" id={{id}}>{{← contents.mapM goB}}</div>}}
-
-@[directive_expander redBox]
-def redBoxImpl : DirectiveExpander
-  | args, stxs => do
-    ArgParse.done.run args
-    return #[← ``(Block.other (Blog.BlockExt.component $(quote `redBox) Json.null) #[$(← stxs.mapM elabBlock),*])]
-
-block_component gallery where
-  toHtml id _data _goI goB contents := do
-    saveCss (s!"#{id}:hover " ++ "{ border: 5px solid red; }")
-    saveCss ".red-box { border: 2px solid red; }"
-    pure {{<div class="red-box" id={{id}}>{{← contents.mapM goB}}</div>}}
-
-
-/-
-
--- This fails with a parse error: WHY???
-block_component image where
-  toHtml id data _goI goB contents := do
-    let .arr #[.str alt, .str url] := data
-      | HtmlT.logError s!"Failed to deserialize {data}"
-        pure .empty
-    pure {{
-      <div class="image-item" id={{id}}>
-        <img href={{url}} alt={{alt}}>
-        <div class="description">{{← contents.mapM goB}}</div>
-      </div>
-    }}
-
--/
-
-
-@[directive_expander gallery]
-def galleryImpl : DirectiveExpander
-  | args, stxs => do
-    ArgParse.done.run args
-    let #[stx] := stxs
-      | logErrorAt (mkNullNode stxs) "Expected one block"
-        return #[← `(sorry)]
-    let `(block| dl{ $item*}) := stx
-      | throwErrorAt stx "Expected definition list"
-    let items ← item.mapM getItem
-    return #[← ``(Block.other (Blog.BlockExt.component $(quote `gallery) Json.null) #[$(items),*])]
-where
-  getItem : TSyntax `desc_item → DocElabM Term
-    | `(desc_item|: $inls* => $desc $descs*) => do
-      let #[inl] := inls.filter (fun
-          | `(inline|$s:str) => s.getString.any (!·.isWhitespace)
-          | _ => true)
-        | throwErrorAt (mkNullNode inls) "Expected one inline"
-      let `(inline|image($alt)($url)) := inl
-        | throwErrorAt inl "Expected an image"
-      `(Block.other (.component $(quote `image) (.arr #[$alt, $url])) #[$(← elabBlock desc), $(← descs.mapM elabBlock),*])
-    | stx => throwErrorAt stx "Expected an image and description, got {stx}"
-
-block_component +directive button' (onclick : String) where
-  toHtml id _ _ goB contents := do
-    saveJs <| "window.addEventListener('load', () => {" ++
-      s!"document.getElementById('{id}')?.addEventListener('click', () => " ++
-      "{ alert(" ++ onclick.quote ++ ");})});"
-    pure {{
-      <button id={{id}}>
-        {{← contents.mapM goB}}
-      </button>
-    }}
-
-
-inline_component button (onclick : String) where
-  toHtml id _ goI contents := do
-    saveJs <| "window.addEventListener('load', () => {" ++
-      s!"document.getElementById('{id}')?.addEventListener('click', () => " ++
-      "{ alert('hello');});});"
-    pure {{
-      <button id={{id}}>
-        {{← contents.mapM goI}}
-      </button>
-    }}
-
-@[role_expander button]
-def buttonImpl : RoleExpander
-  | args, contents => do
-    let onclick ← ArgParse.run (.positional `onClick .string) args
-    pure #[← ``(button $(quote onclick) #[$(← contents.mapM elabInline),*])]
-
-end
-
-open Verso.Output.Html in
-def exampleHtml: Verso.Output.Html := {{
-  <p>"Hi therE!"</p>
-}}
-
-def example2Html : ProofWidgets.Html := (
-  ProofWidgets.Html.text "Hi"
-)
-
-def example2RealHtml : Verso.Output.Html := ProofWidgets.pwHtmlToVersoHtml example2Html
-
-def Verso.Output.Html.addAttrs (attrList : Array (String × String)) : Verso.Output.Html → Verso.Output.Html
-| .tag (name : String) (attrs : Array (String × String)) contents =>
-  .tag name (attrList.append attrs) contents
-| x => x
-
-
-def hilbert_example : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.compare_hilbert_curves 2 3).toHtml
-  ).addAttrs #[("style", "max-width: 25%; margin: 0 auto; display: block;")]
-
-
-open Verso.Output.Html in
-def hamster_alone : Verso.Output.Html := Verso.Output.Html.tag "img" #[
-  ("src", "hilbertcurve/hamster_alone.svg"),
-  ("alt", "Our hypothesized curve moving from left to right, depicted as a hamster on an arrow."),
-  ("style", "max-width: 25%; margin: 0 auto; display: block;")
-] (.text false "")
-
-open Verso.Output.Html in
-def hamster_together : Verso.Output.Html := Verso.Output.Html.tag "img" #[
-  ("src", "hilbertcurve/hamster_together.svg"),
-  ("alt", "How we put our curve together, depicted as 4 squares containing hamsters moving up, right, right, and down so that the hamster's back is 'in' the square."),
-  ("style", "max-width: 50%; margin: 0 auto; display: block;")
-] (.text false "")
-
-def verso_hilbert_curve (i : ℕ) : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_svg i).toHtml
-  ).addAttrs
-    #[("alt", s!"A simple example of iteration {i} of the Hilbert Curve.")]
-
-def hilbert_curve_123 : Verso.Output.Html :=
-  .seq <| #[1, 2, 3, 4].map (fun i =>
-  (verso_hilbert_curve i).addAttrs #[("width", "20%"), ("height", "20%"), ("viewBox", "0 0 400 400")])
-
-def hilbert_curve_3 : Verso.Output.Html :=
-  (verso_hilbert_curve 3).addAttrs
-  #[("style", "max-width: 50%; margin: 0 auto; display: block;")]
-
-#html (HilbertCurve.hilbert_curve_with_points 2).toHtml
-#html (HilbertCurve.hilbert_curve_squares_svg 2).toHtml
-#html (HilbertCurve.hilbert_curve_squares_svg 3).toHtml
-
-def hilbert_curve_red_squares : Verso.Output.Html :=
-  .seq <| #[1, 2, 3].map (fun i =>
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_with_points i (.abs 4)).toHtml
-  ).addAttrs
-    #[("width", "25%"), ("height", "25%"), ("viewBox", "0 0 400 400"),
-    ("alt", "The 2nd iteration of the hilbert curve, where the curve connects squares.")])
-
-def hilbert_curve_rainbow2 : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_squares_svg 2).toHtml
-  ).addAttrs
-    #[("style", "max-width: 50%; margin: 0 auto; display: block;"),
-    ("alt", "The 2nd iteration of the hilbert curve, where the colors
-    change from red, blue, etc, back to red.")]
-
-def hilbert_curve_rainbow3 : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.hilbert_curve_squares_svg 3).toHtml
-  ).addAttrs
-    #[("style", "max-width: 50%; margin: 0 auto; display: block;"),
-    ("alt", "The 3rd iteration of the hilbert curve, where the colors
-    change from red, blue, etc, back to red. The colors haven't changed much since the 2nd iteration.")]
-
-def hilbert_curve_comparison23 : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.compare_hilbert_curves 2 3 (.abs 6) (.abs 2)).toHtml
-  ).addAttrs
-    #[("style", "max-width: 60%; margin: 0 auto; display: block;"),
-    ("alt", "A comparison of the 2nd to 3rd iteration of the hilbert curve.
-    Many points line up, and points that don't are not too far away.")]
-
-def hilbert_curve_comparison34 : Verso.Output.Html :=
-  (ProofWidgets.pwHtmlToVersoHtml
-    (HilbertCurve.compare_hilbert_curves 3 4 (.abs 6) (.abs 2)).toHtml
-  ).addAttrs
-    #[("style", "max-width: 60%; margin: 0 auto; display: block;"),
-    ("alt", "A comparison of the 3rd to 4th iteration of the hilbert curve.
-    Many points line up, and points that don't are not too far away.")]
-
-def a_big_square : Verso.Output.Html :=
-  Verso.Output.Html.tag "svg" #[("viewBox", "0 0 3 0.5"),
-  ("alt", "It's a black square.")] (
-    Verso.Output.Html.tag "rect" #[
-      ("x", "1.25"),
-      ("y", "0"),
-      ("width", "0.5"),
-      ("height", "0.5"),
-      ("fill", "black")
-    ] (.text false "")
-  )
-
-open Verso.Output.Html in
-def displacement_plot : Verso.Output.Html := Verso.Output.Html.tag "img" #[
-  ("src", "hilbertcurve/holderplot.png"),
-  ("alt", "A plot of |H(t)| and 2 sqrt(t). The latter bounds |H(t)| even near 0"),
-  ("style", "max-width: 50%; margin: 0 auto; display: block;")
-] (.text false "")
+#exit
 
 #doc (Page) "Formalizing Hilbert Curves in Lean" =>
 
-> "Everyone understands what a curve is, until they study enough math to become confused." -- Matt Iverson's friend from highschool?
-
-Picture a curve. Your curve is hopefully continuous and can be drawn with a pencil on paper. The Hilbert curve is not like that at all. At time $`t = 0`, your ideal pencil rests right at $`(0, 0)` since we use graph paper here. By time $`t = 1`, it will be at $`(1, 0)`. In between, we will cover every point of the square $`[0, 1] \times [0, 1]` without lifting our pencil off paper. Our ideal pencil can only draw a single point $`(x, y)` at any given $`t`. Frankly, this defies the common sense definition of "curve", but it doesn't break the mathematical one of "continuous function from $`[0,1]` to some space $`X`". The Hilbert curve demonstrates that continuous functions can "expand" the dimension in a way that linear or even differentiable maps are restricted from.
-
-The Hilbert curve is created by a taking a sequence of finer discrete versions, interpolating them, and then taking the limit. The precise construction ensures continuity of the final limit. Our discrete versions by themselves are very useful: they provide a sort-of continuous mapping of integers to 2D coordinates. My current favorite application of Hilbert curves is the [S2 Geometry](http://s2geometry.io/), since it uses Hilbert curves to divide up the Earth into a 1D representation, but every datum ends up as a mildly curvy square on the Earth. The same principles can be used to create other space filling curves tuned for data visualization or others such as [this visualization of ISBNs](https://phiresky.github.io/blog/2025/visualizing-all-books-in-isbn-space/) or [IP addresses](https://davidchall.github.io/ggip/articles/visualizing-ip-data.html).
+In the limit, the Hilbert curve is a weird fractal that is simultaneously a curve and completely fills up a square $`[0, 1] \times [0, 1]`. To those who haven't internalized analysis, a full informal proof does require touching on uniform convergence and Cauchy sequences, but I hope the gist is understandable to others. Given that correctness of the Hilbert curve requires such depth, it seemed like a good test case to formalize in Lean, so we can see the difference in theory vs application.
 
 ::::blob hilbert_curve_123
 ::::
 
-We'll go through a definition of the Hilbert curve along with the actually interesting theorems and proofs.  Then I'll show you how I formalized these into the interactive theorem prover Lean, hopefully spelling out the geometric intuition that humans don't need explained. Then I'll show you a few more of the interesting properties that become obvious once you formalize a theory in Lean: continuity bounds and computabil1. Do not mention the details of the transformations
-ity properties. There's a few facts about Hilbert curves I haven't formalized that I'll mention as well. Finally, we'll finish everything up with some general discussion of the specific features in Lean that made this more or less difficult such as ProofWidgets, AI tools, casework (as always), and `mathlib`, which are all more or less standard tools that make Lean worthwhile.
+I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Holder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math `mathlib`, the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
+
+The discrete versions by themselves are quite useful: they provide a continuous mapping of integers to 2D coordinates: such as giving a 1D coordinate for the Earth in [S2 Geometry](http://s2geometry.io/),  or visualizing [ISBNs](https://phiresky.github.io/blog/2025/visualizing-all-books-in-isbn-space/) or [IP addresses](https://davidchall.github.io/ggip/articles/visualizing-ip-data.html).
+
+To my readers who care about weird curves that exist because of analysis, feel free to skip the Lean sections. To my readers who only care about Lean, feel free to peruse the selected formal definitions and proofs until you get to the following discussion.
+
+1. {ref definition}[The Definition of the Hilbert Curve]
+2. {ref informalproofs}[Informal Versions of Formalized Theorems and Proofs]
+3. {ref leandesign}[Lean Design Decisions and Selected Proofs]
+4. {ref additionaldirections}[Additional Directions]
+5. {ref proscons}[Pros and Cons of using Lean here]
+6. {ref conclusion}[Conclusion]
+7. {ref verso}[P.S. Verso is fine]
 
 # {label definition}[The Definition of the Hilbert Curve]
 

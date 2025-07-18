@@ -28,6 +28,6 @@ def theme : Theme := { Theme.default with
   --|>.override #[] ⟨do return {{<div class="frontpage"><h1>{{← param "title"}}</h1> {{← param "content"}}</div>}}, id⟩
 
 
-def demoSite : Site := Site.page `Test (%doc HilbertCurveBlogPost.Test) #[]
+def forLeanSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForLean) #[]
 
-def main := blogMain theme demoSite
+def main := blogMain theme forLeanSite
