@@ -10,191 +10,23 @@ set_option pp.rawOnError true
 -- I removed some definitions, and now this is necessary...
 set_option maxHeartbeats 800000
 
-#exit
-
 #doc (Page) "Formalizing Hilbert Curves in Lean" =>
 
-In the limit, the Hilbert curve is a weird fractal that is simultaneously a curve and completely fills up a square $`[0, 1] \times [0, 1]`. To those who haven't internalized analysis, a full informal proof does require touching on uniform convergence and Cauchy sequences, but I hope the gist is understandable to others. Given that correctness of the Hilbert curve requires such depth, it seemed like a good test case to formalize in Lean, so we can see the difference in theory vs application.
+The famous Hilbert curve have a simple inductive construction, but key portions use analysis. [Lean](https://lean-lang.org) should be an ideal proof assistant for applying the key mathematical principles. In my [last post](https://josephmckinsey.com/hilbertcurves.html), I walk through informal definitions and proofs. The following
 
 ::::blob hilbert_curve_123
 ::::
 
 I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Holder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math `mathlib`, the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
 
-The discrete versions by themselves are quite useful: they provide a continuous mapping of integers to 2D coordinates: such as giving a 1D coordinate for the Earth in [S2 Geometry](http://s2geometry.io/),  or visualizing [ISBNs](https://phiresky.github.io/blog/2025/visualizing-all-books-in-isbn-space/) or [IP addresses](https://davidchall.github.io/ggip/articles/visualizing-ip-data.html).
-
-To my readers who care about weird curves that exist because of analysis, feel free to skip the Lean sections. To my readers who only care about Lean, feel free to peruse the selected formal definitions and proofs until you get to the following discussion.
-
-1. {ref definition}[The Definition of the Hilbert Curve]
-2. {ref informalproofs}[Informal Versions of Formalized Theorems and Proofs]
-3. {ref leandesign}[Lean Design Decisions and Selected Proofs]
-4. {ref additionaldirections}[Additional Directions]
-5. {ref proscons}[Pros and Cons of using Lean here]
-6. {ref conclusion}[Conclusion]
-7. {ref verso}[P.S. Verso is fine]
-
-# {label definition}[The Definition of the Hilbert Curve]
-
-First, we're going to go through the definitions, which is really all you need to be able to plot things and visualize them. Unlike most mathematical objects, their properties can be revealed very succinctly through drawings and just the definitions. All of our proofs will be in the next section.
-
-## {label integerdefinition}[Integer Version]
-
-**Informal Definition**: The 0th Hilbert curve is the constant $`(0, 0)`. To construct the $`n`th Hilbert curve, take 4 copies of the $`n-1`th Hilbert curve and stitch them together. Hypothesizing a curve for the $`n-1`th iteration, which starts at $`(0,0)` and end on the right:
-
-::::blob hamster_alone
-::::
-
-where we start at $`(0, 0)` and end on the right. Then we'll assemble them as in the diagram below:
-
-::::blob hamster_together
-::::
-
-I tend to think of the integer Hilbert curve as little blocks, so we can diagram them as a sequence of colored squares:
-
-::::blob hilbert_curve_red_squares
-::::
-
-**Formal Definition**: On the integers, we'll define a Hilbert curve $`H_n : \mathbb{N} \to \mathbb{N} \times \mathbb{N}` recursively as follows.
-1. $`H_0(i) = (0, 0)`.
-2. $$`H_n(i) = \begin{cases}
-	swap(H_{n-1}(i)) &\text{ if } i < 2^{2(n-1)} \\
-	H_{n-1}(i - 2^{2(n-1)}) + (2^{n-1}, 0) &\text{ if } 2^{2(n-1)} \le i < 2 \cdot 2^{2(n-1)} \\
-	H_{n-1}(i - 2 \cdot 2^{2(n-1)}) + (2^{n-1}, 2^{n-1}) &\text{ if } 2 \cdot 2^{2(n-1)} \le i < 3 \cdot 2^{2(n-1)} \\
-	(2^n - 1, 2^(n-1) - 1) - swap(H_n(i - 3 \cdot 2^{2^(n-1)})) &\text{ if } 3 \cdot 2^{2(n-1)} \le i
-   \end{cases}`
-   where $`swap((m, n)) = (n, m)`.
-
-We will focus on the first $`2^{2 n}` entries on the curve, which fill up a grid from $`[0, 2^n) \times [0, 2^n)`. From the picture, it's also obvious that no two entries go to the same square on the grid.
-
-## {label normalizeddefinition}[Normalized and Interpolated Version]
-
-We can also interpolate and rescale each iteration to get a different kind of picture.
-
-**Informal Definition**: We interpolate the $n$th Hilbert curve to get a curve $`\mathbb{R} \to \mathbb{R}`, then we scale the down the input by $`\frac{1}{2^{2n}}` so it goes from $`[0, 1]`, then we scale down the output by $`\frac{1}{2^n}` so it fits in $`[0, 1] \times [0, 1]`.
-
-Now, our pictures will look like the more recognizable (to some) Hilbert curve:
-
-::::blob hilbert_curve_3
-::::
-
-**Formal Definition**: The normalized Hilbert curve $`\tilde{H}_n : \mathbb{R} \to \mathbb{R}` is defined as
-$$`\tilde{H}_n(t) = \frac{1}{2^n} \left( (t \cdot 2^{2n} - \lfloor t \cdot 2^{2n} \rfloor) H_n(\lfloor t \cdot 2^{2n} \rfloor + 1) + (1 - t \cdot 2^{2n} + \lfloor t \cdot 2^{2n} \rfloor) H_n(\lfloor t \cdot 2^{2 n} \rfloor) \right)`
-Alternatively, if $`L(x, y, t) = (1 - t) x + t y`, then
-$$`\tilde{H}_n(t) = \frac{1}{2^n} L(H_n(\lfloor t \cdot 2^{2 n} \rfloor), H_i(\lfloor t \cdot 2^{2 n} \rfloor + 1), t \cdot 2^{2 n} - \lfloor t \cdot 2^{2 n} \rfloor)`
-From our pictures, it's also clear that the curve is not only continuous, but it doesn't move that much, $`H_n(i)` is only one block off from $`H_i(i + 1)`.
-
-## {label limitdefinition}[Limit version]
-
-The Hilbert curve iterations also satisfy an important property that we need for the next definition. Each time we iterate, we "refine" the Hilbert curve.
-
-**Informal Lemma**: If you are in a square of the old Hilbert curve, then the next iteration only splits that square, so you'll remain there in future iterations.
-
-From our picture before, the color represented the position in the sequence, so the iterations don't change the color too much:
-
-::::blob hilbert_curve_rainbow2
-::::
-
-::::blob hilbert_curve_rainbow3
-::::
-
-This also applies to the normalized version, now $`\tilde{H}_n(t)` is really close to $`\tilde{H}_{n+1}(t)`, and they get closer and closer as the Hilbert curve squares decrease in size.
-
-::::blob hilbert_curve_comparison34
-::::
-
-Now we get our limit:
-
-**Definition**: Let $`H(t) = \lim_{n \to \infty} \tilde{H}_n(t)`.
-
-Unfortunately, our picture is somewhat less interesting from a visual perspective, but more interesting from a mathematical perspective:
-
-::::blob a_big_square
-::::
-
-Here's the interesting thing about the Hilbert curve: it's a _space-filling curve_, which means it's not only still continuous, but fills the region $`[0, 1] \times [0, 1]`. This is really surprising because curves are famously one-dimensional. Luckily for us, every mathematical pathology is actually a mathematical opportunity.
-
-# {label informalproofs}[Informal Versions of Formalized Theorems and Proofs]
-
-Unless stated otherwise, $`\lVert (x, y) \rVert = \mathrm{max}(|x|, |y|)`. This isn't a real blueprint, since it's not detailed enough, and instead it's meant for humans to understand.
-
-## {label informalintegers}[Integer Facts]
-
-Most of these facts will have very little details in their proofs, because they are not interesting at all. The formal versions will be different.
-
-**Lemma**: The integer Hilbert curves maps $`[0, 2^{2 n} - 1]` precisely onto $`[0, 2^n -1] \times [0, 2^{n} - 1]`.
-
-For this, we can check that each transformation in the definition maps to each quadrant, then we can use induction to prove that it's injective. Surjectivity follows from the finite domain. $`\blacksquare`
-
-**Lemma**: The integer Hilbert curves never move by more than one, so $`|H_n(i+1) - H_n(i)|_1 = 1`.
-
-Try induction  and note that each transformation lines up the end of the Hilbert curve at the start of the previous. $`\blacksquare`
-
-**Lemma**: The integer Hilbert curves "refines" each square, so $`H_{n+1}(i) \in [2 H_n(\lfloor i / 4 \rfloor), 2 H_n(\lfloor i / 4 \rfloor) + 1]`.
-
-Try induction and case work on the quadrants, it really boils down to algebra for each square. $`\blacksquare`.
-
-We can also build on this to show that $`H_{n+m}` will always remain in that square, but we will not need that later, so I'll avoid it.
-
-## {label normalizedproofs}[Normalized and Interpolated facts]
-
-From these, we can get some also nice facts about the interpolated version:
-
-**Lemma**: The normalized Hilbert curves is contained within $`[0, 1] \times [0, 1]`.
-
-This is basic algebra. $`\blacksquare`
-
-**Lemma**: They "almost" fill up the space, so for all $`x \in [0, 1] \times [0, 1]`, there is a $`t \in [0, 1]` such that $`\lVert \tilde{H}_n(t) - x \rVert \le \frac{1}{2^n}`.
-
-Since we can take $`x`, then find a nearby integer $`\le \frac{1}{2^n}` away, and finally use our integer Hilbert curve to find the corresponding $`n` from which we get $`t`. $`\blacksquare`
-
-**Lemma**: The Hilbert iterations get close together, so $`\lVert \tilde{H}_{n+1}(t) - \tilde{H}_{n}(t) \rVert \le \frac{2}{2^n}`. This constant can probably be lowered, but I haven't really checked exactly how far.
-
-Since I want to avoid casework as much as possible, the easiest way to prove this seems to construct a chain of approximations instead:
-$$`
-\begin{align*}
-\lVert \tilde{H}_{i+1}(t) - \tilde{H}_{i}(t) \rVert &\le
-\lVert \tilde{H}_{i+1}(t) - \tilde{H}_{i+1}(\lfloor t \cdot 2^{2(n+1)} \rfloor / 2^{2 n}) \rVert \\
-&+ \lVert \tilde{H}_{i+1}(\lfloor t \cdot 2^{2n} \rfloor / 2^{2(n+1)}) - \tilde{H}_{i}(\lfloor t \cdot 2^{2n} \rfloor / 2^{2 n}) \rVert \\
-&+ \lVert \tilde{H}_{i}(t) - \tilde{H}_{i}(\lfloor t \cdot 2^{2n} \rfloor / 2^{2 n}) \rVert
-\end{align*}
-`
-
-The first can be bounded by $`\frac{1}{2^{n+1}}` since our interpolation only moves $`\frac{1}{2^{n+1}}` between each corner, and similarly by $`\frac{1}{2^n}` for the third case,  the second can be bounded by $`\frac{1}{2^{n+1}}` using the square containment lemma from the integer case.
-
-This lemma can also be improved by using the fact that $`\tilde{H}_{n}((i + 1) / 2^{2 n})` is still in the same square as $`\tilde{H}_n(i  / 2^{2 n})`, but in the moment of formalization, it was more convenient to use the distance lemmas instead. $`\blacksquare`
-
-## {label limitproofs}[Limit Facts]
-
-Now we can get to fun stuff:
-
-**Theorem**: The limit $`H(t)` is continuous.
-
-The crucial part here is uniform convergence. For each $`n`, we have that $`\lVert \tilde{H}_n(t) - \tilde{H}_{n+1}(t) \rVert \le \frac{2}{2^n}`, then
-$$`
-\lVert \tilde{H}_n(t) - H(t) \rVert \le \sum_{i=n}^\infty \lVert \tilde{H}_i(t) - \tilde{H}_{i+1}(t) \rVert \le \sum_{i=n}^\infty \frac{2}{2^i} = \frac{4}{2^{2 n}}.
-`
-
-So thus, $`\tilde{H}_n(t)` converges uniformly to $`H`, since this bound doesn't depend on $`t` at all. Therefore, $`H` is continuous since each $`\tilde{H}_n` is continuous. $`\blacksquare`
-
-**Theorem**: The limit $`H(t)` maps $`[0, 1]` onto $`[0, 1] \times [0, 1]`.
-
-Let $`x \in [0, 1] \times [0, 1]`. Next, we will find a sequence of $`t_i` that converge to some $`t` such that $`\tilde{H}_i(t) \to x`. Finally, since $`\tilde{H}_i` converges uniformly, then $`\tilde{H}_{i}(t) \to H(t) = x`.
-
-Since $`[0, 1]` is sequentially compact, it suffices to find any sequence $`t_i` such that $`\tilde{H}_i(t_i)` converges to $`x`. Using our approximate inverse property from before, we can always pick a $`t_i` such that $`\lVert \tilde{H}_i(t_i) - x \rVert \le \frac{1}{2^n}`. As $`\frac{1}{2^n}` converges to $`0`, thus $`\tilde{H}_i(t_i)` converges to $`x`. So thus, our convergent subsequence also converges to $`x`. $`\blacksquare`
-
-This completes the usual standard set of facts (such as most of Munkres' Topology). We can also see that $`H` cannot be injective, since any continuous injective map is a homeomorphism onto its image, and $`[0, 1]` is not homeomorphic to $`[0, 1] \times [0, 1]`. Unfortunately, this fact is not in Lean's mathlib, and likely will never be, since you really want the fact that $`\mathbb{R}^n \not\cong \mathbb{R}^m` for $`m \neq n` which goes by [invariance of domain](https://en.wikipedia.org/wiki/Invariance_of_domain) and is a standard toolkit from algebraic topology. I could not find this in Lean, but maybe I was missing something. However there is another more rewarding route: symmetry arguments!
-
-**Theorem**: The limit $`H` is symmetric in a similar way to the integer case.
-
-Although the normalized interpolated $`\tilde{H}_i(t)` is not _precisely_ symmetric, we can use the same trick as before and pick a sequence $`t_i` on the corners that exactly matches the symmetry transformations we do have. Our symmetries are also now much simpler, since we can use $`1` and $`\frac{1}{2}` instead of $`2^n` and $`2^{n-1}`. Since our symmetries are uniformly continuous, we still get uniform convergence and the sequence limits passes through the convergence easily still.
-
-I will not spell any of the details here, since the algebra is relatively unenlightening. $`\blacksquare`
-
-**Theorem**: The limit $`H` is not injective.
-
-Since $`H` is symmetric, we can look at the bottom left quadrant and the bottom right quadrant and see that they overlap at the boundary $`\{\frac{1}{2}\} \times [0, \frac{1}{2}]`. Since $`H` is symmetric and surjective, there is a $`t \in [0, \frac{1}{4}]` (the bottom left quadrant) such that $`H(t) = (\frac{1}{2}, 0)`. Similarly there is a $`t \in [\frac{3}{4}, 1]` (the bottom right quadrant) such that $`H(t) = (\frac{1}{2}, 0)`. These $`t`s have to be different, so thus $`H` is not injective. $`\blacksquare`
-
-These is the end of what I've formalized, but once you've thought about every detail so much for so long, additional properties become fairly obvious too. I'll return to that after discussing the formalizations in Lean.
+1. {label notation_section}[Notation for the Hilbert Curve]
+2. {ref leandesign}[Lean Design Decisions and Selected Proofs]
+3. {ref additionaldirections}[Additional Directions]
+4. {ref proscons}[Pros and Cons of using Lean here]
+5. {ref conclusion}[Conclusion]
+6. {ref verso}[P.S. Verso is fine]
+
+# {label notation_section}[Notation for the Hilbert Curve]
 
 # {label leandesign}[Lean Design Decisions and Selected Proofs]
 
@@ -207,8 +39,6 @@ Filling out the details here will involve explaining to Lean what a "quadrant" i
 Additionally, there are some other parts that seem to be mildly inadequately covered in Lean's `mathlib`: casting from $`\mathbb{N} \times \mathbb{N}` to $`\mathbb{Z} \times \mathbb{Z}` and to $`\mathbb{R} \times \mathbb{R}`, linear interpolation, and a few proofs about floors.
 
 ## {label leantransformations}[Transformations and Quadrants]
-
-Initially, I defined the integer-version without any auxiliary definitions, but I've learned that you often need to prove things about every sub-part, so it is best to give them labels we wouldn't bother with informally.
 
 For instance, I define a custom name for the lengths, since it appeared as a very common repeated expression. In retrospect, I probably would I have used $`4^n` and made it reducible automatically, but you live and learn.
 
@@ -612,7 +442,6 @@ example (i : ℕ) (t : ℝ) :
   linarith
 ```
 
-
 From this, we easily get a Cauchy sequence `normal_is_cauchy`.
 
 To prove "approximate" surjectivity, we can use the floor function _except_ for the top and right edge, which we have to do manually. Because we already lost computability, we can use classical logic and simplify our life a bit. We'll go even further and turn this existential into a left-inverse too.
@@ -903,7 +732,3 @@ Ultimately, I am getting bit tired of these kind of obvious tasks becoming a 300
 I wrote this blog post by drafting first in Obsidian, and then copying it to [Verso](https://github.com/leanprover/verso). I also did this for [Flean](https://josephmckinsey.com/flean2.html), and people seemed to like that.
 
 I don't know if I've gotten better at Lean or if Verso has gotten easier to use, but I needed a lot less boilerplate to get this blog-post in Verso. I have a few notes at https://github.com/josephmckinsey/HilbertCurveBlogPost/blob/main/notes for some of the problems I encountered, but overall I feel like I have a real template for next time here.
-
-# {label references}[References]
-
-I only looked at Wikipedia and Munkres' Topology section "A Space-Filling Curve" (Chapter 7, section 44).
