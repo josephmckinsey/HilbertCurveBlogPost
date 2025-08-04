@@ -12,12 +12,12 @@ set_option maxHeartbeats 800000
 
 #doc (Page) "Formalizing Hilbert Curves in Lean" =>
 
-The famous Hilbert curve have a simple inductive construction, but key portions use analysis. [Lean](https://lean-lang.org) should be an ideal proof assistant for applying the key mathematical principles. In my [last post](https://josephmckinsey.com/hilbertcurves.html), I walk through informal definitions and proofs. The following
+The famous Hilbert curve has a simple inductive construction, but key portions use analysis. [Lean](https://lean-lang.org) should be an ideal proof assistant for applying the key mathematical principles. In my [last post](https://josephmckinsey.com/hilbertcurves.html), I walked through informal definitions and proofs. The following concerns a more sophisticated perspective on how Lean can undertake this sort of mathematics.
 
 ::::blob hilbert_curve_123
 ::::
 
-I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Holder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math `mathlib`, the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
+I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Höllder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math [`mathlib`](https://github.com/leanprover-community/mathlib4), the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
 
 1. {label notation_section}[Notation for the Hilbert Curve]
 2. {ref leandesign}[Lean Design Decisions and Selected Proofs]
@@ -26,21 +26,28 @@ I'll present some of my formalization below using Verso, Lean's new HTML generat
 5. {ref conclusion}[Conclusion]
 6. {ref verso}[P.S. Verso is fine]
 
-# {label notation_section}[Notation for the Hilbert Curve]
+# {label notation_section}[Mathematical Notation for the Hilbert Curve]
+
+We will construct integer versions of the Hilbert curve denoted as $`H_n(i)` where $`n` and $`i` are natural numbers, and $`H_n(i)` is a pair of natural numbers.
+
+When we interpolate and scale down the integer versions, we'll use $`\tilde{H}_i(t)`.
+
+Finally when we pass to the limit and get the final curve, as $`H(t)` with no superscript or subscript.
 
 # {label leandesign}[Lean Design Decisions and Selected Proofs]
 
 If you don't care about the details of Lean proofs, then I would skip this section, so go to {ref additionaldirections}[Additional Directions]. If you are mildly interested, please skim all the proofs!
 
-In our proofs earlier, I mentioned the explicit definition, however most of the proofs deferred the case-work and algebra to the reader. Often, the truth of the statement is completely obvious from the pictures involved, such as the bounds and injectivity of the integer case $`H_i(n)`. Of course, this is insufficient for a truly formal proof as in Lean 4. The primary tool for the low-level definitions is essentially always induction, but we still need to label the different cases.
+In our proofs in the [previous post](https://josephmckinsey.com/hilbertcurves.html), I did mention the explicit definitions of eahc version, however most of the proofs deferred the case-work and algebra to the reader. Often, the truth of the statement is completely obvious from the pictures involved, such as the bounds and injectivity of the integer case $`H_i(n)`. Of course, this is insufficient for a truly formal proof as in Lean 4. The primary tool for the low-level definitions is essentially always induction, but we still need to label the different cases.
 
 Filling out the details here will involve explaining to Lean what a "quadrant" is, how the various intervals map to those quadrants, and explaining in detail what each transformation does, and defining their properties. In particular, the later proofs require continuity assumptions.
 
-Additionally, there are some other parts that seem to be mildly inadequately covered in Lean's `mathlib`: casting from $`\mathbb{N} \times \mathbb{N}` to $`\mathbb{Z} \times \mathbb{Z}` and to $`\mathbb{R} \times \mathbb{R}`, linear interpolation, and a few proofs about floors.
+Additionally, there are some activities that seem to be mildly inadequately covered in Lean's `mathlib`: casting from $`\mathbb{N} \times \mathbb{N}` to $`\mathbb{Z} \times \mathbb{Z}` and to $`\mathbb{R} \times \mathbb{R}`, linear interpolation, and a few proofs about floors.
 
 ## {label leantransformations}[Transformations and Quadrants]
 
-For instance, I define a custom name for the lengths, since it appeared as a very common repeated expression. In retrospect, I probably would I have used $`4^n` and made it reducible automatically, but you live and learn.
+I define a custom name for the lengths, since it appeared as a very common repeated expression. In retrospect, I probably would I have used $`4^n` and made the term reducible to `4^n` automatically, but you live and learn. I would not be surprised if
+my other choices here were somewhat suboptimal, especially the quadrants.
 
 ```leanInit notOpen
 ```
@@ -111,7 +118,7 @@ def get_quadrant (i n : ℕ) : Quadrant :=
     Quadrant.BOTTOM_RIGHT
 ```
 
-Each of these quadrants will also have a few "equal"  like  `bottom_left_eq : get_quadrant i n = Quadrant.BOTTOM_LEFT ↔ n < hilbert_length i`. These statements seem required in my definition, which actually makes me think my definition is pretty bad.
+Each of these quadrants will also have a few "equal" lemmas like `bottom_left_eq : get_quadrant i n = Quadrant.BOTTOM_LEFT ↔ n < hilbert_length i`. These statements seem required in my definition, which actually makes me think my definition is pretty bad.
 
 ## {label leaninteger}[The Integer Version]
 
@@ -133,6 +140,8 @@ def hilbert_curve : ℕ → ℕ → (ℕ × ℕ)
     T3_nat i h
 ```
 
+Although this version has all the abbreviations such as `Quadrant.BOTTOM_LEFT` and `get_quadrant`. Those can be included inline without much loss in clarity, but the Lean proofs become much more difficult once casework gets involved.
+
 Unlike the normal presentation of the Hilbert curve, we have a definition for the $`n = 0` case, $`H_0(i) = (0, 0)`. For $`i \ge 1`, we can then divide everything up into quadrants, then apply each transformation, and recurse.
 
 Before it is time to prove theorems, it is important to test definitions like this. My first few definitions had some sign and off-by-one errors which can be found with testing:
@@ -145,14 +154,14 @@ info: [(0, 0), (0, 1), (1, 1), (1, 0)]
 #eval List.map (hilbert_curve 1) (List.range (2^2))
 ```
 
-Using [ProofWidgets](https://github.com/leanprover-community/ProofWidgets4) , we can also display these, which makes the exact nature of a bug extremely obvious. By giving the examples of ProofWidgets to any modern LLM (I used Gemini), then you can generate SVG which displays in the InfoView [`#html (hilbert_curve_svg 3).toHtml`](https://github.com/josephmckinsey/LeanHilbertCurves/blob/325dc26792e216989d0a713696a698db04e9d7b6/HilbertCurve/Pictures.lean#L57) right next to your goals and hypotheses:
+Using [ProofWidgets](https://github.com/leanprover-community/ProofWidgets4) , we can also display these, which makes the nature of a bug extremely obvious. By giving the examples folder of ProofWidgets to any modern LLM (I used Gemini), you can generate SVG which displays in the Lean InfoView [`#html (hilbert_curve_svg 3).toHtml`](https://github.com/josephmckinsey/LeanHilbertCurves/blob/325dc26792e216989d0a713696a698db04e9d7b6/HilbertCurve/Pictures.lean#L57) right next to your goals and hypotheses:
 
 ::::blob hilbert_curve_3
 ::::
 
-These pictures can be quite helpful, since they can let you verify hypotheses experimentally before committing to a precise, yet wrong statement. Ever since I was inspired by [@thingskatedid](https://twitter.com/thingskatedid/status/1386077306381242371), I've been enjoying the fruits of visualizations created with throwaway Javascript.
+These pictures can be quite helpful, since they can let you verify hypotheses experimentally before committing to a precise, yet wrong statement. Ever since [@thingskatedid](https://twitter.com/thingskatedid/status/1386077306381242371) inspired me, I've been enjoying the fruits of visualizations created with throwaway Javascript.
 
-Since I know how annoying extra conditions can get, all of my functions use "normal" types like `ℕ` instead of `Fin n`. I didn't test this design decision, so maybe adding dependent information isn't _so_ bad. On the edges, we naturally end up in a constant function.
+Since I know how annoying extra conditions can get, all of my functions use "normal" types like `ℕ` instead of `Fin n`. I didn't test this design decision, so maybe adding dependent information isn't _so_ bad. Beyond the typical input bounds, our definition naturally makes the curve constant.
 
 ### {label leanintproofs}[Some formal proofs about integers]
 
@@ -177,7 +186,7 @@ which then let us decompose the `hilbert_curve`
 example (i n : ℕ) : get_quadrant' i (hilbert_curve (i+1) n) = get_quadrant i n := by sorry
 ```
 
-and finally we can finish with a bunch of induction (as a reminder, you can hover or click elements to get details!)
+and finally we can finish with a bunch of induction. As a reminder, you can hover or click elements to get details!
 
 ```lean openNames
 #check hilbert_curve_injective
@@ -225,9 +234,9 @@ example (i : ℕ) (n : ℕ) (h : n < hilbert_length i) :
     omega
 ```
 
-As you can see, it seems that a lot of the "obvious" proofs I skipped run into hundreds of lines of code once you spell it all out. After thinking about it, I think that turning a picture into mathematics involves encoding a lot of geometry we have very well internalized, sort of like how it took many decades to program the difference between a cat and a bird reliably.
+As you can see, it seems that a lot of the "obvious" proofs I skipped in the informal post run into hundreds of lines of code once you spell it all out. After thinking about it, I think that turning a picture into mathematics involves encoding a lot of geometry we humans have very well internalized, sort of like how it took many decades to program the difference between a cat and a bird reliably.
 
-The surjectivity proofs ended up requiring a similar level of "collateral damage". To prove the Hilbert curve only moves by 1 each step, there is a similar level of boilerplate to show that the quadrants "connect" with each transformation. I had to define a little l1 norm `dist'` for pairs of integers, which feels like it _should_ exist somewhere. If you know of where to look, please reach out.
+The surjectivity proofs ended up committing a similar level of "collateral damage". To prove the Hilbert curve only moves by 1 each step, a similar level of boilerplate shows that the quadrants "connect" with each transformation. I had to define a little l1 norm `dist'` for pairs of integers, which feels like it _should_ exist somewhere. If you know of where to look, please reach out.
 
 I am at a bit of a loss of how to make this simple. It all feels extremely basic, but there was so many definitions involved here.
 
@@ -236,7 +245,7 @@ I am at a bit of a loss of how to make this simple. It all feels extremely basic
 ::::blob hilbert_curve_comparison23
 ::::
 
-After staring at a lot of diagrams comparing the different curves, I came up with the following statement:
+After staring at several diagrams comparing the different curves, I came up with the following statement:
 
 ```lean notOpen
 /-
@@ -270,7 +279,7 @@ lemma T1_within_square (i : ℕ) (mn1 mn2 : ℕ × ℕ) :
 
 The biggest obstacle to algebra in Lean is that you need to do a lot of casting. Often times, statements on $`\mathbb{N}` which are trivial for integers or reals requires a lot of intermediate bound proofs to satisfy the conditions for `Nat.cast_sub`.  I decided that if the tactic `omega` ever failed, I would try converting to integers, but luckily `omega` covers a lot.
 
-Unfortunately, pairs and casting pairs is not very well covered by `mathlib`, so I have a few definitions and lemmas like:
+Unfortunately, pairs and casting pairs are not very well covered by `mathlib`, so I have a few definitions and lemmas like:
 
 ```lean notOpen
 #check NtimesN.toRtimesR
@@ -288,11 +297,11 @@ instance {α : Type} [PartialOrder α] [Ring α] [IsStrictOrderedRing α] :
   IsOrderedRing (α × α) := by sorry
 ```
 
-I discovered these didn't appear to exist when I actually read through the ordered ring lemmas instead of just searching for lemmas. I wouldn't be surprised if these already exist _somewhere_.
+I discovered these instances didn't appear to exist when I actually read through the ordered ring lemmas instead of just searching for lemmas. I wouldn't be surprised if these already exist _somewhere_ or if there was a good reason not too.
 
 ## {label leaninterpolation}[Interpolating]
 
-To construct our interpolated version of the Hilbert curve, first we must define an API for interpolation. In `mathlib`, we have the ability to (1) concatenate paths and (2) use `AffineMap.lineMap` to connect points. Unfortunately, blindly concatenating paths is not good, since it always compresses the subpaths to $`[0, \frac{1}{2}]` and $`[\frac{1}{2}, 1]`. Repeated application does not evenly space points, which we need. So instead, we'll need to define linear interpolation:
+To construct our interpolated version of the Hilbert curve, first we must define an API for interpolation. In `mathlib`, we have the ability to (1) concatenate paths and (2) use `AffineMap.lineMap` to connect points. Unfortunately, blindly concatenating paths is not so nice, since it always compresses the two arguments to $`[0, \frac{1}{2}]` and $`[\frac{1}{2}, 1]`. Repeated application does not evenly space points, which we need. So instead, we'll need to define linear interpolation:
 
 ```lean notOpen
 #check interpolate_points
@@ -301,7 +310,7 @@ noncomputable example (f : ℤ → ℝ × ℝ) (t : ℝ) : ℝ × ℝ :=
   (AffineMap.lineMap (f n) (f (n+1))) (t - ⌊t⌋)
 ```
 
-Here, `AffineMap.lineMap` is exactly the $`(1 - t)x  + t y = x + t (y - x)` but for affine spaces. I didn't bother to generalize this definition, but affine spaces seem like a convenient target. I also find this definition to be much simpler than the "informal" definition, which is a nice change. You may notice that it is noncomputable. This is because the floor function is actually terribly annoying, but the computable alternative is even more so. I'll leave it as an exercise for the reader to construct a computable version.
+Here, `AffineMap.lineMap` is exactly the $`(1 - t)x  + t y = x + t (y - x)` but for affine spaces. I didn't bother to generalize this definition, but affine spaces seem like a convenient target. I also find this definition to be much simpler than the "informal" definition, which is a nice change. You may notice that it is noncomputable. This is because the floor function is terribly annoying, but the computable alternative here is also a chore. I'll leave it as an exercise for the reader to construct a computable version.
 
 There are a few theorems for interpolation that are all fairly obvious. Remember you can hover or click to to get description and docs
 - `interpolate_interpolates`
@@ -468,7 +477,7 @@ noncomputable def limit_hilbert_curve' (t : ℝ) : ℝ × ℝ :=
   Classical.choose (limit_hilbert_curve_exists t)
 ```
 
-Many of the remaining difficulties concern the difficulties of computing limits, which has some fundamental complexity. On the technical side, `mathlib`'s definition of uniform convergence is extremely general. It uses ["Uniformity Spaces"](https://en.wikipedia.org/wiki/Uniform_space) (mathlib: [Mathlib.Topology.UniformSpaces.Defs](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/UniformSpace/Defs.html)). I am luckily familiar enough with topological groups that nothing scared me _too_ much, since otherwise this might have required more effort to get used to.
+Many of the remaining difficulties concern the difficulties of computing limits, which appears to have some fundamental complexity. On the technical side, `mathlib`'s definition of uniform convergence is extremely general. It uses ["Uniformity Spaces"](https://en.wikipedia.org/wiki/Uniform_space) (mathlib: [Mathlib.Topology.UniformSpaces.Defs](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/UniformSpace/Defs.html)). I am luckily familiar enough with topological groups that nothing scared me _too_ much, since otherwise this might have required more effort to get used to.
 
 Each of our proofs, such as surjectivity, go through the same sort of steps at this point: (1) choose a really nice sequence that we can evaluate at the interpolated version, (2) choose an even nicer subsequence that converges, and then (3) use unique and uniform convergence to lift it back up to `limit_hilbert_curve`.
 
@@ -514,7 +523,7 @@ example :
   exact norm_hilbert_inv_dist n x xy
 ```
 
-For the symmetries, we have to have uniform continuity to preserve uniform convergence. To get uniform continuity of each transformation, there's some new definitions, plus some little lemmas I defined to get `AffineMap.toContinuousAffineMap` for finite-dimensional spaces and `ContinuousAffineMap.uniformContinuous`.
+For the symmetries, we use uniform continuity of transformations to preserve uniform convergence. To get uniform continuity of each transformation, there's some new definitions, plus some little lemmas I defined to get `AffineMap.toContinuousAffineMap` for finite-dimensional spaces and `ContinuousAffineMap.uniformContinuous`.
 
 ```lean notOpen
 noncomputable def T3_real (i : ℕ) : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ :=
@@ -539,7 +548,7 @@ noncomputable def T3_real_lim : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ :=
   }
 ```
 
-After I formalized this, I suspect there is a better method that uses convergence on $`\top \times \mathcal{N}(x)` instead of uniform convergence, since uniform convergence isn't very compositional, whereas continuity on a product filter is more compositional.
+After I formalized this, I suspect there is a better method that uses convergence on $`\top \times \mathcal{N}(x)` instead of uniform convergence, since uniform convergence isn't very compositional, whereas continuity on a product filter is more compositional. I have not pursued this properly.
 
 The symmetry properties end up involving some annoying calculation to pick the appropriate $`t_i` so we stay within a quadrant.
 
@@ -613,7 +622,7 @@ example (t : ℝ) (h : t ∈ Set.Icc (3/4) 1) :
   apply tendsto_nhds_unique lhs_tendsto rhs_tendsto
 ```
 
-I only did the bottom left and bottom right case, because there really isn't that much obvious overlap, but that's sufficient to prove it isn't injective. That proof in particular is a bit boring.
+I only did the bottom left and bottom right case, because that's sufficient to prove it isn't injective. That proof in particular is a bit boring.
 
 # {label additionaldirections}[Additional Directions]
 
@@ -648,17 +657,17 @@ We can do some plots (in Lean of course) to validate the exact the constant.
 ::::blob displacement_plot
 ::::
 
-I tested different values until $`C = 2` looked appropriate as I increased the iterations. I suspect this proof is just another tedious application of each transformation, so I leave it up to future Earthlings to prove this.
+I tested different values until $`C = 2` looked appropriate when I increased the iteration. I suspect this proof is just another tedious application of each transformation, so I leave it up to anyone else to prove this.
 
 It turns out any Hölder continuous map from a set $`s` with exponent $`1/d` can have dimension at most $`d \, \mathrm{dim}\, s`, so in our case, we know that since the image of the Hilbert curve has dimension 2, then it can't be Hölder continuous with exponent $`> 1/2`, and in particular, it can't be Lipschitz or differentiable.
 
-Oddly enough, this fact actually IS in Lean already! It is an exercise to the reader to find it.
+Oddly enough, this fact actually IS in Lean already!
 
 ## {label lsystems}[L-Systems]
 
 The symmetry structure plus making sure everything connects up seems like it is actually sufficient for continuity, so there may be some related facts that show that any L-system satisfies some nice continuity relations. I suspect the "space-filling" depends on the exact fractal nature of those systems.
 
-First things first, I never proved that the [L-system definition](https://en.wikipedia.org/wiki/Hilbert_curve#Representation_as_Lindenmayer_system) is equivalent, and it looks like once again, annoying induction.
+I never proved that the [L-system definition](https://en.wikipedia.org/wiki/Hilbert_curve#Representation_as_Lindenmayer_system) is equivalent, and it looks like once again, annoying induction.
 
 ## {label base4}[Base-4 Representation]
 
@@ -671,7 +680,7 @@ Each digit tells you which quadrant you are in, so define the digits of the base
 - 0.2... -> (0.1..., 0.1...)
 - 0.3... -> (0.1..., 0.0...)
 
-I know that the continuity conditions here amount to any Gray code. The flipping and swapping are still necessary, and involve dealing with the digits in a different way depending on earlier digits, but this doesn't appear to be anything more than a technical obstacle.
+I know that the continuity conditions here amount to any Gray code. The flipping and swapping are still necessary and involve dealing with the digits in a different way depending on earlier digits, but this doesn't appear to be anything more than a technical obstacle.
 
 ## {label partialinverse}[Partial Computable Inverse]
 
@@ -687,13 +696,13 @@ From here, we can refine our surjectivity in a nice way, there is a computable l
 
 $$`H(\mathbb{Q}) \subseteq \mathbb{Q} \times \mathbb{Q}`
 
-Once I saw the symmetry relations and the digits definition and I computed a few $`H(t)` "by hand" for a version of the non-injectivity theorem, I realized there was a "sharper" computable algorithm for $`H`.
+Once I saw the symmetry relations, the digits definition, and I computed a few $`H(t)` "by hand" for a version of the non-injectivity theorem, I realized there was a "sharper" computable algorithm for $`H`.
 
-As an example, let's do $`\frac{1}{3}`, which is how I got into this mess. From $`\frac{1}{3} = \frac{1}{4} + \frac{1}{4}\frac{1}{3}`, we know that each iteration, we zoom into the top left corner, and when we do $`4 (\frac{1}{3} - \frac{1}{4}) = \frac{1}{3}` . This gives us a single transformation: zoom in up and to the left each time. This gives a sequence $`\frac{1}{2} + \frac{1}{4} + \cdots = 1` for the $`y`-coordinate and $`0` for the $`x`-coordinate.
+As an example, let's do $`\frac{1}{3}`, which is how I got into this. By inspecting $`\frac{1}{3} = \frac{1}{4} + \frac{1}{4}\frac{1}{3}`, we know that each iteration, we zoom into the top left corner, and when we do $`4 (\frac{1}{3} - \frac{1}{4}) = \frac{1}{3}` . This gives us a single transformation: zoom in up and to the left each time. This gives a sequence $`\frac{1}{2} + \frac{1}{4} + \cdots = 1` for the $`y`-coordinate and $`0` for the $`x`-coordinate. Thus $`H(\frac{1}{3}) = (0, 1)`.
 
 Suppose we expand $`t \in \mathbb{Q}` into an its base-4 representation: $`t = 0.t_1 t_2 t_3 \cdots`. Eventually, this expansion starts repeating, say at digit $`n + 1` to $`n + T`.  The first $`n` digits will localize us to some smallish square, and then we'll explicit calculate $`H(t)` for some $`t` which _immmediately_ repeats.
 
-For repeating digits $`0.t_1 \cdots t_T t_1 \cdots`, we can construct a function $`T_{t_1 t_2 \cdots t_T}` which zooms into the appropriate section, which we can iterate to get out final output as the final fixed point. This function $`T` is actually an affine map, which can be explicitly computed. Since the fixed points of affine maps can be solved for using linear algebra ($`A x + b = x` is a linear equation), we can solve the appropriate matrix, and then find $`H(t)` without looking at all the digits.
+For repeating digits $`0.t_1 \cdots t_T t_1 \cdots`, we can construct a function $`T_{t_1 t_2 \cdots t_T}` which zooms into the appropriate section, which we can iterate to get out final output as the final fixed point. This function $`T` is an affine map, which can be explicitly computed. Since the fixed points of affine maps can be solved for using linear algebra (i.e. $`A x + b = x` is a linear equation), we can solve the appropriate matrix, and then find $`H(t)` without looking at all the digits.
 
 Combining this with our other transformation gives us $`H(t)` for any rational $`t`. Since every transformation here involves rational matrices and solving a rational linear system, we can compute an rational inverse matrix and thus $`H(t) \in \mathbb{Q}`.
 
@@ -701,34 +710,32 @@ I would be interested to learn a proof of this fact which isn't constructive.
 
 ## {label mathlib}[Mathlib additions I would like to do]
 
-There's some I just don't understand the implications of like casting products and OrderedRing on products
+There's some instances I just don't understand the implications of like casting products and OrderedRing on products.
 
-I would like to add a few lemmas about limits of floors and floor of integer division, which seem like easy ones to do.
+I would like to add a few lemmas about limits of floors and floor of integer division, which seem easy enough.
 
-Interpolation seems like it could be infinitely extended, so requires more thought.
+Interpolation has _too many_ extensions, so requires more thought, particularly in regards to complex analysis.
 
-Finally, continuous affine maps are a bit of nightmare to work with. Once topological vector spaces are in, then we'll have the unfortunate problem of transferring everything from there to continuous affine maps too, which involves picking a zero over and over again. Right now, the normed continuous affine maps are the only nice ones.
+Finally, continuous affine maps are a bit of frustration to work with. Once topological vector spaces are in, then we'll have the unfortunate problem of transferring everything from there to continuous affine maps too, which involves picking a zero over and over again. Right now, the normed continuous affine maps are the only nice ones.
 
 # {label proscons}[Pros and Cons of using Lean here]
 
-Overall, I'm pretty happy I did this formalization. Formalization really pushes you in a way that writing sometimes doesn't. I would suspect that I could have gotten 80% of the insight with 20% of the effort if I actually wrote a blueprint out first, whoops. The computation and casework seems to still be a bit of a nightmare, and in this case, I'm not sure what could really make this "pleasant". There's a lot of geometric intuition.
+Overall, I'm pretty happy I did this formalization. Formalization really pushes you in a way that writing sometimes doesn't. I would suspect that I could have gotten 80% of the insight with 20% of the effort if I actually wrote a blueprint out first, whoops. The computation and casework seems to still be a bit of a nightmare, and in this case, I'm not sure what could really make that part "pleasant". There's a lot of geometric intuition.
 
-Using ProofWidgets was a great idea, since it caught bugs I would have needed some serious formalization to uncover, like _during_ proving injectivity. I was surprised at (1) how easy it is for AI to autogenerate these and (2) how difficult it was to just write JavaScript. It's obvious that ProofWidgets is just injecting JavaScript, but Lean makes string-interpolating your own JavaScript _really_ annoying. I actually regret not using ProofWidgets more by substituting specific examples when I am doing algebra. The only big downside is that $`\mathbb{R}` is usually noncomputable, and producing a useful approximation requires "breaking" out of a quotient, so it's usually easier to build out numerics separately.
+Using ProofWidgets was a great idea, since it caught bugs I would have needed some serious formalization to uncover, such as _during_ proving injectivity. I was surprised at (1) how easy it is for AI to autogenerate these and (2) how difficult it was to just write JavaScript mself. It's obvious that ProofWidgets is just injecting JavaScript, but Lean makes string-interpolating your own JavaScript indirect. I actually regret not using ProofWidgets more by substituting specific examples when I am doing algebra. The only big impediment is that $`\mathbb{R}` is usually noncomputable, and producing a useful approximation requires "breaking" out of a quotient, so it's usually easier to build out numeric testing separately for $`\mathbb{R}`.
 
-When I tried to use any sort of AI, it usually failed. There was a few really early, basic definitions for the different transformations which Gemini 2.5 did quite well on. It did great on SVG generation and JavaScript stuff. However, the moment you had a milldly complicated proof like "interpolation is continuous", then even the super fancy DeepSeek-Prover-V2 got stuck in a loop trying to prove $`t - \lfloor t \rfloor` is continuous. Even when they did work, they often produced some of the ugliest proofs I've seen in my life, and it was faster to rewrite them from scratch then clean it up. Many of the provers are trained using only pretraining + pure RL, so they don't look up theorems when they should, they write 10 different tactics in a row and hope it works, they are incapable of running Lean code while generating, they can't simplify or take wrong paths, so overall they end up completely useless for even the amateur mathematician.
+"When I tried to use any sort of AI, it usually failed. There was a few really early, basic definitions for the different transformations which Gemini 2.5 did quite well on. It did great on SVG generation and JavaScript. However, the moment you had a mildly complicated proof like "interpolation is continuous", then even the super fancy "DeepSeek-Prover-V2" got stuck in a loop trying to prove $`t - \lfloor t \rfloor` is continuous. Even when they did work, they often produced some of the ugliest proofs I've seen in my life, and it was faster to rewrite them from scratch then clean it up. Many of the provers are trained using only pretraining + pure RL, so they don't look up theorems when they should, they write 10 different tactics in a row and hope it works, they are incapable of running Lean code while generating, they can't simplify or take wrong paths, so overall they end up completely useless for even the amateur mathematician.
 
-`mathlib`'s continuous affine map situation cost me a week of reading like 3 or 4 inconsistent versions of everything. I do hope they fix it. I also still suspect that uniform continuity isn't especially well-adapted for filters still.
+`mathlib`'s continuous affine map situation cost me a week of reading 3 or 4 inconsistent versions of the APIs I needed. I do hope they fix it (if they haven't already). I still suspect that uniform continuity isn't well-adapted for filters.
 
 # {label conclusion}[Conclusion]
 
-Hopefully, you've learned that the Hilbert curve is a continuous curve that looks like a square. That's the main cool fact about Hilbert curves.
-
 The Hilbert curve has some nice properties in both the integers and the reals, and in my opinion, any finite integer implementation is only correct because of the convergence to the reals. That makes it an interesting verification exercise, since you can't really avoid having to deal with limits. There are plenty of other similar pathological curves with similar constructions (like [Whitney's "A function not constant on a connected set of critical points"](https://www.mimuw.edu.pl/~pawelst/am2/Analiza_Matematyczna_2/Notatki_files/Przyk%C5%82ad_Whitneya.pdf)). I've purposefully ignored looking too hard into the literature here, since I wanted to learn from formalization instead of just formalizing known facts. Even now, I am wary of letting go of some puzzles and looking up an answer.
 
-Ultimately, I am getting bit tired of these kind of obvious tasks becoming a 3000 LOC adventure. Frankly, lots of it weren't enjoyable, and I do this because I find it fun. At some point, I would like to play around with something less obvious and verbose instead, or at least on work on tackling these usability problems instead of suffering through them. There's obviously plenty of things to work on still.
+Ultimately, I am getting bit tired of these kind of obvious tasks becoming a 3000 LOC adventure. Frankly, many days weren't enjoyable, and I do this primarily because I find it fun. At some point, I would like to play around with something less obvious and less verbose instead, or at least on work on tackling these usability problems instead of suffering through them. There's plenty of things to work on still.
 
 # {label verso}[P.S. Verso is fine]
 
-I wrote this blog post by drafting first in Obsidian, and then copying it to [Verso](https://github.com/leanprover/verso). I also did this for [Flean](https://josephmckinsey.com/flean2.html), and people seemed to like that.
+I wrote this blog post by drafting first in Obsidian, and then copying it to [Verso](https://github.com/leanprover/verso).
 
 I don't know if I've gotten better at Lean or if Verso has gotten easier to use, but I needed a lot less boilerplate to get this blog-post in Verso. I have a few notes at https://github.com/josephmckinsey/HilbertCurveBlogPost/blob/main/notes for some of the problems I encountered, but overall I feel like I have a real template for next time here.

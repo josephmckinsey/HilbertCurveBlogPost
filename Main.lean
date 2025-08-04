@@ -29,6 +29,6 @@ def theme : Theme := { Theme.default with
 
 
 def forLeanSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForLean) #[]
-def forTheRestSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForLean) #[]
+def forTheRestSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForTheRest) #[]
 
 def main := blogMain theme forLeanSite
