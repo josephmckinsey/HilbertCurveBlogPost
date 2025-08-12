@@ -10,12 +10,14 @@ def theme : Theme := { Theme.default with
     return {{
       <html>
         <head>
-          <meta charset="UTF-8"/>
-          <title>{{ (← param (α := String) "title") }} " — Verso "</title>
-          <link rel="stylesheet" href="/static/style.css"/>
-          {{← builtinHeader }}
+        <meta name="tags" content="math, lean, hilbert-curves"/> -- not really a theme...
+        <meta name="authors" content="Joseph McKinsey"/>
+        <meta name="category" content="article"/>
+        <meta charset="UTF-8"/>
+        <title>{{ (← param (α := String) "title") }}</title>
         </head>
         <body>
+          {{← builtinHeader }}  -- My blog generator needs the JS deep in here
           <div class="main" role="main">
             <div class="wrap">
               {{ (← param "content") }}
@@ -25,10 +27,9 @@ def theme : Theme := { Theme.default with
       </html>
     }}
   }
-  --|>.override #[] ⟨do return {{<div class="frontpage"><h1>{{← param "title"}}</h1> {{← param "content"}}</div>}}, id⟩
 
 
 def forLeanSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForLean) #[]
 def forTheRestSite : Site := Site.page `ForLean (%doc HilbertCurveBlogPost.ForTheRest) #[]
 
-def main := blogMain theme forLeanSite
+def main := blogMain theme forTheRestSite

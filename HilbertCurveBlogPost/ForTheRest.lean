@@ -14,7 +14,7 @@ set_option maxHeartbeats 800000
 
 > "Everyone understands what a curve is, until they study enough math to become confused." -- Matt Iverson's friend from highschool?
 
-In the limit, the Hilbert curve is a weird fractal that curves around to completely fill up a square $`[0, 1] \times [0, 1]`. To those who haven't internalized analysis, a full informal proof may scare one by referring uniform convergence and Cauchy sequences, but I hope the gist is understandable enough. Given that correctness of the Hilbert curve requires such depth, it seemed like a good test case to formalize in the programming language [Lean](https://lean-lang.org), so we can see the difference in theory vs application.
+In the limit, the Hilbert curve is a weird fractal that curves around to completely fill up a square $`[0, 1] \times [0, 1]`. To those who haven't internalized analysis, a full informal proof may scare one by referencing uniform convergence and Cauchy sequences, but I hope the gist is understandable enough. Given that correctness of the Hilbert curve requires such depth, it seemed like a good test case to formalize in the programming language [Lean](https://lean-lang.org), so we can see the difference in theory vs application.
 
 ::::blob hilbert_curve_123
 ::::
@@ -50,11 +50,11 @@ I tend to think of the integer Hilbert curve as little blocks instead of tiny cu
 	swap(H_{n-1}(i)) &\text{ if } i < 2^{2(n-1)} \\
 	H_{n-1}(i - 2^{2(n-1)}) + (2^{n-1}, 0) &\text{ if } 2^{2(n-1)} \le i < 2 \cdot 2^{2(n-1)} \\
 	H_{n-1}(i - 2 \cdot 2^{2(n-1)}) + (2^{n-1}, 2^{n-1}) &\text{ if } 2 \cdot 2^{2(n-1)} \le i < 3 \cdot 2^{2(n-1)} \\
-	(2^n - 1, 2^(n-1) - 1) - swap(H_n(i - 3 \cdot 2^{2^(n-1)})) &\text{ if } 3 \cdot 2^{2(n-1)} \le i
+	(2^n - 1, 2^{n-1} - 1) - swap(H_n(i - 3 \cdot 2^{2^(n-1)})) &\text{ if } 3 \cdot 2^{2(n-1)} \le i
    \end{cases}`
    where $`swap((m, n)) = (n, m)`.
 
-We will focus on the first $`2^{2 n}` indices on the curve, which fill up a grid from $`[0, 2^n) \times [0, 2^n)`. From the picture, it's obvious that no two indices go to the same square on the grid.
+We will focus on the first $`2^{2 n}` indices on the curve, which fill up a grid from $`[0, 2^n) \times [0, 2^n)`. From the picture, it's clear that no two indices go to the same square on the grid.
 
 ## {label normalizeddefinition}[Normalized and Interpolated Version]
 
@@ -105,7 +105,7 @@ Here's the interesting thing about the Hilbert curve: it's a _space-filling curv
 
 # {label informalproofs}[Informal Versions of Formalized Theorems and Proofs]
 
-Unless stated otherwise, $`\lVert (x, y) \rVert = \mathrm{max}(|x|, |y|)`. These proofs will not be detailed enough usually to serve as a blueprint for Lean. It is meant for you, the reader, to read and hopefully clarify the Lean code later. Most of the details are too boring and uninteresting.
+Unless stated otherwise, $`\lVert (x, y) \rVert = \mathrm{max}(|x|, |y|)`. These proofs will not be detailed enough usually to serve as a blueprint for Lean. It is meant to be read and clarify the Lean code later. Most of the details are too boring and uninteresting.
 
 ## {label informalintegers}[Integer Facts]
 
@@ -173,7 +173,7 @@ This completes the usual standard set of facts (such as most of Munkres' Topolog
 
 **Theorem**: The limit $`H` is symmetric in a similar way to the integer case.
 
-Although the normalized interpolated $`\tilde{H}_i(t)` is not _precisely_ symmetric, we can use the same trick as before and pick a sequence $`t_i` on the corners that exactly matches the symmetry transformations we do have. Our symmetries are also now much simpler, since we can use $`1` and $`\frac{1}{2}` instead of $`2^n` and $`2^{n-1}`. Since our symmetries are [uniformly continuous](https://en.wikipedia.org/wiki/Uniform_continuity), we still get uniform convergence and the sequence limits passes through the convergence easily still.
+Although the normalized interpolated $`\tilde{H}_i(t)` is not _precisely_ symmetric, we can use the same trick as before and pick a sequence $`t_i` on the corners that exactly matches the symmetry transformations we do have. Our symmetries are also now much simpler, since we can use $`1` and $`\frac{1}{2}` instead of $`2^n` and $`2^{n-1}`. Since our symmetries are [uniformly continuous](https://en.wikipedia.org/wiki/Uniform_continuity), we still get uniform convergence and the sequence limits passes through the convergence still.
 
 I will not spell out the rest of the details here, since the algebra is relatively unenlightening. $`\blacksquare`
 
@@ -181,7 +181,7 @@ I will not spell out the rest of the details here, since the algebra is relative
 
 Since $`H` is symmetric, we can look at the bottom left quadrant and the bottom right quadrant and see that they overlap at the boundary $`\{\frac{1}{2}\} \times [0, \frac{1}{2}]`. Since $`H` is symmetric and surjective, there is a $`t \in [0, \frac{1}{4}]` (the bottom left quadrant) such that $`H(t) = (\frac{1}{2}, 0)`. Similarly there is a $`t \in [\frac{3}{4}, 1]` (the bottom right quadrant) such that $`H(t) = (\frac{1}{2}, 0)`. These $`t`s have to be different, so thus $`H` is not injective. $`\blacksquare`
 
-These is the end of what I've formalized in Lean, but once you've thought about every detail so much for so long, additional properties become fairly obvious too. If you aren't interested in Lean, you may find all those of interest in the [next post]( [next post](https://josephmckinsey.com/leanhilbertcurves.html).
+These is the end of what I've formalized in Lean, but once you've thought about every detail so much for so long, additional properties become fairly clear too. If you aren't interested in Lean, you may find all those of interest in the [next post](https://josephmckinsey.com/leanhilbertcurves.html).
 
 # {label conclusion}[Conclusion]
 

@@ -17,16 +17,16 @@ The famous Hilbert curve has a simple inductive construction, but key portions u
 ::::blob hilbert_curve_123
 ::::
 
-I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Höllder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math [`mathlib`](https://github.com/leanprover-community/mathlib4), the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
+I'll present some of my formalization below using Verso, Lean's new HTML generation tool, but I'll also tell you about the other interesting facts you learn by thinking hard about every detail while coding a formalization, such as Hölder continuity, computability, partial invertibility, etc. Despite disappointing AI provers, promising inline visualizations with ProofWidgets, and our lovely library of math [`mathlib`](https://github.com/leanprover-community/mathlib4), the challenging gaps left by spatial intuition leave a lot of gnarly induction, casework, and algebra, along with some confusing remnants from `mathlib` and Lean's casting rules.
 
-1. {label notation_section}[Notation for the Hilbert Curve]
+1. {ref notationsection}[Notation for the Hilbert Curve]
 2. {ref leandesign}[Lean Design Decisions and Selected Proofs]
 3. {ref additionaldirections}[Additional Directions]
 4. {ref proscons}[Pros and Cons of using Lean here]
 5. {ref conclusion}[Conclusion]
 6. {ref verso}[P.S. Verso is fine]
 
-# {label notation_section}[Mathematical Notation for the Hilbert Curve]
+# {label notationsection}[Mathematical Notation for the Hilbert Curve]
 
 We will construct integer versions of the Hilbert curve denoted as $`H_n(i)` where $`n` and $`i` are natural numbers, and $`H_n(i)` is a pair of natural numbers.
 
@@ -38,7 +38,7 @@ Finally when we pass to the limit and get the final curve, as $`H(t)` with no su
 
 If you don't care about the details of Lean proofs, then I would skip this section, so go to {ref additionaldirections}[Additional Directions]. If you are mildly interested, please skim all the proofs!
 
-In our proofs in the [previous post](https://josephmckinsey.com/hilbertcurves.html), I did mention the explicit definitions of eahc version, however most of the proofs deferred the case-work and algebra to the reader. Often, the truth of the statement is completely obvious from the pictures involved, such as the bounds and injectivity of the integer case $`H_i(n)`. Of course, this is insufficient for a truly formal proof as in Lean 4. The primary tool for the low-level definitions is essentially always induction, but we still need to label the different cases.
+In our proofs in the [previous post](https://josephmckinsey.com/hilbertcurves.html), I did mention the explicit definitions of each version, however most of the proofs deferred the case-work and algebra to the reader. Often, the truth of the statement is completely clear from the pictures involved, such as the bounds and injectivity of the integer case $`H_i(n)`. Of course, this is insufficient for a truly formal proof as in Lean 4. The primary tool for the low-level definitions is essentially always induction, but we still need to label the different cases.
 
 Filling out the details here will involve explaining to Lean what a "quadrant" is, how the various intervals map to those quadrants, and explaining in detail what each transformation does, and defining their properties. In particular, the later proofs require continuity assumptions.
 
@@ -154,7 +154,16 @@ info: [(0, 0), (0, 1), (1, 1), (1, 0)]
 #eval List.map (hilbert_curve 1) (List.range (2^2))
 ```
 
-Using [ProofWidgets](https://github.com/leanprover-community/ProofWidgets4) , we can also display these, which makes the nature of a bug extremely obvious. By giving the examples folder of ProofWidgets to any modern LLM (I used Gemini), you can generate SVG which displays in the Lean InfoView [`#html (hilbert_curve_svg 3).toHtml`](https://github.com/josephmckinsey/LeanHilbertCurves/blob/325dc26792e216989d0a713696a698db04e9d7b6/HilbertCurve/Pictures.lean#L57) right next to your goals and hypotheses:
+Using [ProofWidgets](https://github.com/leanprover-community/ProofWidgets4), we can also display these, which makes the nature of a bug extremely clear. By giving the examples folder of ProofWidgets to any modern LLM (I used Gemini), you can generate SVGs from Lean data. Then `#html` sends the SVGs to the Lean InfoView on the right:
+
+```
+-- HilbertCurve.Pictures (omitting the verbose SVG AI-generated code)
+def hilbert_curve_svg (i : ℕ) (stroke : Svg.Size frame := .px 1) : Svg frame :=
+  sorry
+  -- https://github.com/josephmckinsey/LeanHilbertCurves/blob/325dc26792e216989d0a713696a698db04e9d7b6/HilbertCurve/Pictures.lean#L57
+
+#html (hilbert_curve_svg 2).toHtml
+```
 
 ::::blob hilbert_curve_3
 ::::
@@ -279,7 +288,7 @@ lemma T1_within_square (i : ℕ) (mn1 mn2 : ℕ × ℕ) :
 
 The biggest obstacle to algebra in Lean is that you need to do a lot of casting. Often times, statements on $`\mathbb{N}` which are trivial for integers or reals requires a lot of intermediate bound proofs to satisfy the conditions for `Nat.cast_sub`.  I decided that if the tactic `omega` ever failed, I would try converting to integers, but luckily `omega` covers a lot.
 
-Unfortunately, pairs and casting pairs are not very well covered by `mathlib`, so I have a few definitions and lemmas like:
+Sasting pairs are not very well covered by `mathlib`, so I included a few instances.
 
 ```lean notOpen
 #check NtimesN.toRtimesR
@@ -289,15 +298,11 @@ example : ℕ × ℕ → R × R := fun p => (p.1, p.2)
 
 instance : Coe (ℕ × ℕ) (R × R) where
   coe := NtimesN.toRtimesR
+
+#check (ZtimesZ.toR : ℤ × ℤ → ℝ × ℝ)
 ```
 
-The less obvious and more annoying part comes from missing instances for ordered rings on products:
-```lean notOpen
-instance {α : Type} [PartialOrder α] [Ring α] [IsStrictOrderedRing α] :
-  IsOrderedRing (α × α) := by sorry
-```
-
-I discovered these instances didn't appear to exist when I actually read through the ordered ring lemmas instead of just searching for lemmas. I wouldn't be surprised if these already exist _somewhere_ or if there was a good reason not too.
+Thanks to Yaël Dillies for pointing out a noncommmuting type class diamond when you add `Coe α β → Coe (α × α) (β × β)` and `Coe α β → Coe α (β × β)`. `Coe α β → Coe (α × α) ((β × β) × (β × β))` can be `(x, y) ↦ ((↑x, ↑x), (↑y, ↑y))`, or `((↑x, ↑y), (↑x, ↑y))`. Eric Wieser's PhD thesis has a section "Multiple-inheritance hazards in dependently-typed algebraic hierarchies" about similar issues. Given their use in other languages, a proper array broadcasting interface should be able to define stable lifting procedures (at least in $`\mathbb{R}`).
 
 ## {label leaninterpolation}[Interpolating]
 
@@ -312,19 +317,19 @@ noncomputable example (f : ℤ → ℝ × ℝ) (t : ℝ) : ℝ × ℝ :=
 
 Here, `AffineMap.lineMap` is exactly the $`(1 - t)x  + t y = x + t (y - x)` but for affine spaces. I didn't bother to generalize this definition, but affine spaces seem like a convenient target. I also find this definition to be much simpler than the "informal" definition, which is a nice change. You may notice that it is noncomputable. This is because the floor function is terribly annoying, but the computable alternative here is also a chore. I'll leave it as an exercise for the reader to construct a computable version.
 
-There are a few theorems for interpolation that are all fairly obvious. Remember you can hover or click to to get description and docs
-- `interpolate_interpolates`
-- `interpolate_add`  and `interpolate_add'`
-- `interpolate_eq_affine_map`
-- `interpolate_section`
-- `interpolate_preserves`: this one was actually difficult to prove, since it involved some strange use of `Set.Accumulate`.
-- `interpolate_map` and `interpolate_map'`
-- `interpolate_is_continuous`
-- `interpolate_distance`
+There are a few theorems for interpolation that are all ordinary. Remember you can hover or click to to get description and docs
+- {lean openNames}`interpolate_interpolates`
+- {lean openNames}`interpolate_add` and {lean openNames}`interpolate_add'`
+- {lean openNames}`interpolate_eq_affine_map`
+- {lean openNames}`interpolate_section`
+- {lean openNames}`interpolate_preserves`: this one was actually difficult to prove, since it involved some strange use of {lean openNames}`@Set.Accumulate`.
+- {lean openNames}`interpolate_map` and {lean openNames}`interpolate_map'`
+- {lean openNames}`interpolate_is_continuous`
+- {lean openNames}`interpolate_distance`
 
 Proving `interpolate_is_continuous` required using `LocallyFinite.continuous`. Trying to compose lots of continuous functions can be abused by interleaving them, and I refuse to "manually" use continuity here. Our "component" intervals $`[i, i+1]` cover each point at most twice. I found this to be completely obvious, but also very annoying to prove, so I prove at most 3 or 4 times with the use of the $`\lfloor \cdot \rfloor` and $`\lfloor \cdot \rfloor`.
 
-I suspect that these proofs can be reordered and streamlined as well as obviously extended to some really nice space. I am wary of standardizing too soon, since minor extensions like adding circular arcs are still a huge pain. There are plenty of questions like "why make them evenly spaced".
+I suspect that these proofs can be reordered and streamlined as well as extended to some really nice space. I am wary of standardizing too soon, since minor extensions like adding circular arcs are still a huge pain. There are plenty of questions like "why make them evenly spaced".
 
 ## {label leannormalized}[Scaling and Normalized Version]
 
@@ -451,7 +456,7 @@ example (i : ℕ) (t : ℝ) :
   linarith
 ```
 
-From this, we easily get a Cauchy sequence `normal_is_cauchy`.
+From this, we get a Cauchy sequence `normal_is_cauchy`.
 
 To prove "approximate" surjectivity, we can use the floor function _except_ for the top and right edge, which we have to do manually. Because we already lost computability, we can use classical logic and simplify our life a bit. We'll go even further and turn this existential into a left-inverse too.
 
@@ -708,31 +713,33 @@ Combining this with our other transformation gives us $`H(t)` for any rational $
 
 I would be interested to learn a proof of this fact which isn't constructive.
 
+## {label fractals}[Other fractals]
+
+Other fractals such as the dragon curve have similar properties, if less well-behaved. (The limit is a dragon, not a square.) Since I broke up continuity into individual specific bounds instead of computations on recursive combinations, the Hilbert curve lemmas have no direct effect on such curves. However, such proof should be computational since a sufficiently "bounded" recursive procedure should tend to a limit in a subsequence. Intuitively, I expect most convergence bounds to be simple enough, while area computations are tractable through infinite series. These procedures seem challenging to implement.
+
 ## {label mathlib}[Mathlib additions I would like to do]
 
-There's some instances I just don't understand the implications of like casting products and OrderedRing on products.
-
-I would like to add a few lemmas about limits of floors and floor of integer division, which seem easy enough.
+I would like to add a few lemmas about limits of floors and floor of integer division, which seem easy enough. Edit: [Vasilii Nesterovs recently added](https://github.com/leanprover-community/mathlib4/pull/26004) `⌊n * x⌋ / n = ⌊x⌋` for floor fields already.
 
 Interpolation has _too many_ extensions, so requires more thought, particularly in regards to complex analysis.
 
-Finally, continuous affine maps are a bit of frustration to work with. Once topological vector spaces are in, then we'll have the unfortunate problem of transferring everything from there to continuous affine maps too, which involves picking a zero over and over again. Right now, the normed continuous affine maps are the only nice ones.
+Finally, continuous affine maps are a bit of frustration to work with. There are many results that apply to topological vector spaces like much of [Mathlib.Analysis.Normed.Module.FiniteDimensional](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Analysis/Normed/Module/FiniteDimension.html). There are results about slightly different kinds of continuous affine maps in either [Mathlib.Topology.Algebra.Affine](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/Algebra/Affine.html), which depend on something being a topological group, or [Mathlib.Topology.Algebra.ContinuousAffineMap](https://leanprover-community.github.io/mathlib4_docs/Mathlib/Topology/Algebra/ContinuousAffineMap.html), where they depend on an AddTorsor. Right now, the normed continuous affine maps are the only nice ones, but adding topological vector spaces should clarify much of this theory.
 
 # {label proscons}[Pros and Cons of using Lean here]
 
 Overall, I'm pretty happy I did this formalization. Formalization really pushes you in a way that writing sometimes doesn't. I would suspect that I could have gotten 80% of the insight with 20% of the effort if I actually wrote a blueprint out first, whoops. The computation and casework seems to still be a bit of a nightmare, and in this case, I'm not sure what could really make that part "pleasant". There's a lot of geometric intuition.
 
-Using ProofWidgets was a great idea, since it caught bugs I would have needed some serious formalization to uncover, such as _during_ proving injectivity. I was surprised at (1) how easy it is for AI to autogenerate these and (2) how difficult it was to just write JavaScript mself. It's obvious that ProofWidgets is just injecting JavaScript, but Lean makes string-interpolating your own JavaScript indirect. I actually regret not using ProofWidgets more by substituting specific examples when I am doing algebra. The only big impediment is that $`\mathbb{R}` is usually noncomputable, and producing a useful approximation requires "breaking" out of a quotient, so it's usually easier to build out numeric testing separately for $`\mathbb{R}`.
+Using ProofWidgets was a great idea, since it caught bugs I would have needed some serious formalization to uncover, such as _during_ proving injectivity. I was surprised at (1) how easy it is for AI to autogenerate these and (2) how difficult it was to just write JavaScript mself. ProofWidgets is probably just injecting JavaScript, but Lean makes string-interpolating your own JavaScript indirect. I actually regret not using ProofWidgets more by substituting specific examples when I am doing algebra. The only big impediment is that $`\mathbb{R}` is usually noncomputable, and producing a useful approximation requires "breaking" out of a quotient, so it's usually easier to build out numeric testing separately for $`\mathbb{R}`.
 
-"When I tried to use any sort of AI, it usually failed. There was a few really early, basic definitions for the different transformations which Gemini 2.5 did quite well on. It did great on SVG generation and JavaScript. However, the moment you had a mildly complicated proof like "interpolation is continuous", then even the super fancy "DeepSeek-Prover-V2" got stuck in a loop trying to prove $`t - \lfloor t \rfloor` is continuous. Even when they did work, they often produced some of the ugliest proofs I've seen in my life, and it was faster to rewrite them from scratch then clean it up. Many of the provers are trained using only pretraining + pure RL, so they don't look up theorems when they should, they write 10 different tactics in a row and hope it works, they are incapable of running Lean code while generating, they can't simplify or take wrong paths, so overall they end up completely useless for even the amateur mathematician.
+When I tried to use any sort of AI, it usually failed. There was a few really early, basic definitions for the different transformations which Gemini 2.5 did quite well on. It did great on SVG generation and JavaScript. However, the moment you had a mildly complicated proof like "interpolation is continuous", then even the super fancy "DeepSeek-Prover-V2" got stuck in a loop trying to prove $`t - \lfloor t \rfloor` is continuous. Even when they did work, they often produced some of the ugliest proofs I've seen in my life, and it was faster to rewrite them from scratch then clean it up. Many of the provers are trained using only pretraining + pure RL, so they don't look up theorems when they should, they write 10 different tactics in a row and hope it works, they are incapable of running Lean code while generating, they can't simplify or take wrong paths, so overall they end up completely useless for even the amateur mathematician.
 
-`mathlib`'s continuous affine map situation cost me a week of reading 3 or 4 inconsistent versions of the APIs I needed. I do hope they fix it (if they haven't already). I still suspect that uniform continuity isn't well-adapted for filters.
+The confusion in `mathlib`'s continuous affine map cost me a few days of reading and false starts. I suspect that the ordinary use of uniform continuity is excessive when you really need weaker product continuity results, which is a mismatch I would call in Lean's favor over the informal.
 
 # {label conclusion}[Conclusion]
 
 The Hilbert curve has some nice properties in both the integers and the reals, and in my opinion, any finite integer implementation is only correct because of the convergence to the reals. That makes it an interesting verification exercise, since you can't really avoid having to deal with limits. There are plenty of other similar pathological curves with similar constructions (like [Whitney's "A function not constant on a connected set of critical points"](https://www.mimuw.edu.pl/~pawelst/am2/Analiza_Matematyczna_2/Notatki_files/Przyk%C5%82ad_Whitneya.pdf)). I've purposefully ignored looking too hard into the literature here, since I wanted to learn from formalization instead of just formalizing known facts. Even now, I am wary of letting go of some puzzles and looking up an answer.
 
-Ultimately, I am getting bit tired of these kind of obvious tasks becoming a 3000 LOC adventure. Frankly, many days weren't enjoyable, and I do this primarily because I find it fun. At some point, I would like to play around with something less obvious and less verbose instead, or at least on work on tackling these usability problems instead of suffering through them. There's plenty of things to work on still.
+Ultimately, I am getting bit tired of these kind of "obvious" tasks becoming a 3000 LOC adventure. Frankly, many days weren't enjoyable, and I do this primarily because I find it fun. At some point, I would like to play around with something less obvious and less verbose instead, or at least on work on tackling these usability problems instead of suffering through them. There's plenty of things to work on still.
 
 # {label verso}[P.S. Verso is fine]
 

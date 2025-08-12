@@ -108,356 +108,367 @@
  "<code>add_assoc.{u_1} {G : Type u_1} [AddSemigroup G] (a b c : G) : a + b + c = a + (b + c)</code>",
  "34":
  "<code>sub_eq_add_neg.{u_1} {G : Type u_1} [SubNegMonoid G] (a b : G) : a - b = a + -b</code><span class=\"sep\"></span><code class=\"docstring\">Subtracting an element is the same as adding by its negative.\nThis is a duplicate of `SubNegMonoid.sub_eq_add_neg` ensuring that the types unfold better.</code>",
- "332":
+ "336":
  "<code>Filter.EventuallyEq.{u_1, u_2} {α : Type u_1} {β : Type u_2} (l : Filter α) (f g : α → β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">Two functions `f` and `g` are *eventually equal* along a filter `l` if the set of `x` such that\n`f x = g x` belongs to `l`. </code>",
- "331":
+ "335":
  "<code>Filter.Tendsto (fun i =&gt; (T3_real i) (normalized_hilbert_curve i (4 * f i - 3))) Filter.atTop\n  (nhds (limit_hilbert_curve t))</code>",
- "330":
+ "334":
  "<code>Filter.tendsto_congr'.{u_1, u_2} {α : Type u_1} {β : Type u_2} {f₁ f₂ : α → β} {l₁ : Filter α} {l₂ : Filter β}\n  (hl : f₁ =ᶠ[l₁] f₂) : Filter.Tendsto f₁ l₁ l₂ ↔ Filter.Tendsto f₂ l₁ l₂</code>",
+ "333":
+ "<code>(4 * ↑(fnat i) - 3 * ↑(hilbert_length i)) / ↑(hilbert_length i) = 4 * ↑(fnat i) / ↑(hilbert_length i) - 3</code>",
+ "332":
+ "<code class=\"docstring\">The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`\nwhere neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully\ncrafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by\niterating the following steps:\n\n- write an inverse as a division\n- in any product, move the division to the right\n- if there are several divisions in a product, group them together at the end and write them as a\n  single division\n- reduce a sum to a common denominator\n\nIf the goal is an equality, this simpset will also clear the denominators, so that the proof\ncan normally be concluded by an application of `ring`.\n\n`field_simp [hx, hy]` is a short form for\n`simp (disch := field_simp_discharge) [-one_div, -one_divp, -mul_eq_zero, hx, hy, field_simps]`\n\nNote that this naive algorithm will not try to detect common factors in denominators to reduce the\ncomplexity of the resulting expression. Instead, it relies on the ability of `ring` to handle\ncomplicated expressions in the next step.\n\nAs always with the simplifier, reduction steps will only be applied if the preconditions of the\nlemmas can be checked. This means that proofs that denominators are nonzero should be included. The\nfact that a product is nonzero when all factors are, and that a power of a nonzero number is\nnonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)\nshould be given explicitly. If your expression is not completely reduced by the simplifier\ninvocation, check the denominators of the resulting expression and provide proofs that they are\nnonzero to enable further progress.\n\nTo check that denominators are nonzero, `field_simp` will look for facts in the context, and\nwill try to apply `norm_num` to close numerical goals.\n\nThe invocation of `field_simp` removes the lemma `one_div` from the simpset, as this lemma\nworks against the algorithm explained above. It also removes\n`mul_eq_zero : x * y = 0 ↔ x = 0 ∨ y = 0`, as `norm_num` can not work on disjunctions to\nclose goals of the form `24 ≠ 0`, and replaces it with `mul_ne_zero : x ≠ 0 → y ≠ 0 → x * y ≠ 0`\ncreating two goals instead of a disjunction.\n\nFor example,\n```lean\nexample (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :\n    a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) := by\n  field_simp\n  ring\n```\n\nMoreover, the `field_simp` tactic can also take care of inverses of units in\na general (commutative) monoid/ring and partial division `/ₚ`, see `Algebra.Group.Units`\nfor the definition. Analogue to the case above, the lemma `one_divp` is removed from the simpset\nas this works against the algorithm. If you have objects with an `IsUnit x` instance like\n`(x : R) (hx : IsUnit x)`, you should lift them with\n`lift x to Rˣ using id hx; rw [IsUnit.unit_of_val_units] clear hx`\nbefore using `field_simp`.\n\nSee also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions\nthat have numerals in denominators.\nThe tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to\nentirely remove (numeric) division from the expression by multiplying by a factor.\n</code>",
+ "331": "<code>0 &lt; hilbert_length i</code>",
+ "330":
+ "<code>HilbertCurve.hilbert_length_pos (i : ℕ) : 0 &lt; hilbert_length i</code>",
  "33":
  "<code>add_comm.{u_1} {G : Type u_1} [AddCommMagma G] (a b : G) : a + b = b + a</code>",
  "329":
- "<code>(4 * ↑(fnat i) - 3 * ↑(hilbert_length i)) / ↑(hilbert_length i) = 4 * ↑(fnat i) / ↑(hilbert_length i) - 3</code>",
- "328":
- "<code class=\"docstring\">The goal of `field_simp` is to reduce an expression in a field to an expression of the form `n / d`\nwhere neither `n` nor `d` contains any division symbol, just using the simplifier (with a carefully\ncrafted simpset named `field_simps`) to reduce the number of division symbols whenever possible by\niterating the following steps:\n\n- write an inverse as a division\n- in any product, move the division to the right\n- if there are several divisions in a product, group them together at the end and write them as a\n  single division\n- reduce a sum to a common denominator\n\nIf the goal is an equality, this simpset will also clear the denominators, so that the proof\ncan normally be concluded by an application of `ring`.\n\n`field_simp [hx, hy]` is a short form for\n`simp (disch := field_simp_discharge) [-one_div, -one_divp, -mul_eq_zero, hx, hy, field_simps]`\n\nNote that this naive algorithm will not try to detect common factors in denominators to reduce the\ncomplexity of the resulting expression. Instead, it relies on the ability of `ring` to handle\ncomplicated expressions in the next step.\n\nAs always with the simplifier, reduction steps will only be applied if the preconditions of the\nlemmas can be checked. This means that proofs that denominators are nonzero should be included. The\nfact that a product is nonzero when all factors are, and that a power of a nonzero number is\nnonzero, are included in the simpset, but more complicated assertions (especially dealing with sums)\nshould be given explicitly. If your expression is not completely reduced by the simplifier\ninvocation, check the denominators of the resulting expression and provide proofs that they are\nnonzero to enable further progress.\n\nTo check that denominators are nonzero, `field_simp` will look for facts in the context, and\nwill try to apply `norm_num` to close numerical goals.\n\nThe invocation of `field_simp` removes the lemma `one_div` from the simpset, as this lemma\nworks against the algorithm explained above. It also removes\n`mul_eq_zero : x * y = 0 ↔ x = 0 ∨ y = 0`, as `norm_num` can not work on disjunctions to\nclose goals of the form `24 ≠ 0`, and replaces it with `mul_ne_zero : x ≠ 0 → y ≠ 0 → x * y ≠ 0`\ncreating two goals instead of a disjunction.\n\nFor example,\n```lean\nexample (a b c d x y : ℂ) (hx : x ≠ 0) (hy : y ≠ 0) :\n    a + b / x + c / x^2 + d / x^3 = a + x⁻¹ * (y * b / y + (d / x + c) / x) := by\n  field_simp\n  ring\n```\n\nMoreover, the `field_simp` tactic can also take care of inverses of units in\na general (commutative) monoid/ring and partial division `/ₚ`, see `Algebra.Group.Units`\nfor the definition. Analogue to the case above, the lemma `one_divp` is removed from the simpset\nas this works against the algorithm. If you have objects with an `IsUnit x` instance like\n`(x : R) (hx : IsUnit x)`, you should lift them with\n`lift x to Rˣ using id hx; rw [IsUnit.unit_of_val_units] clear hx`\nbefore using `field_simp`.\n\nSee also the `cancel_denoms` tactic, which tries to do a similar simplification for expressions\nthat have numerals in denominators.\nThe tactics are not related: `cancel_denoms` will only handle numeric denominators, and will try to\nentirely remove (numeric) division from the expression by multiplying by a factor.\n</code>",
- "327": "<code>0 &lt; hilbert_length i</code>",
- "326":
- "<code>HilbertCurve.hilbert_length_pos (i : ℕ) : 0 &lt; hilbert_length i</code>",
- "325":
  "<code>HilbertCurve.normalized_recurse_bottom_right {i j : ℕ} (h : get_quadrant i (4 * j) = Quadrant.BOTTOM_RIGHT) :\n  normalized_hilbert_curve (i + 1) (↑j / ↑(hilbert_length i)) =\n    (T3_real i) (normalized_hilbert_curve i ((4 * ↑j - 3 * ↑(hilbert_length i)) / ↑(hilbert_length i)))</code>",
- "324": "<code>get_quadrant i (4 * fnat i) = Quadrant.BOTTOM_RIGHT</code>",
- "323":
+ "328": "<code>get_quadrant i (4 * fnat i) = Quadrant.BOTTOM_RIGHT</code>",
+ "327":
  "<code>mul_div_assoc.{u_1} {G : Type u_1} [DivInvMonoid G] (a b c : G) : a * b / c = a * (b / c)</code>",
- "322":
+ "326":
  "<code>GE.ge.{u} {α : Type u} [LE α] (a b : α) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`a ≥ b` is an abbreviation for `b ≤ a`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `≥` in identifiers is `ge`.\n\n * The recommended spelling of `&gt;=` in identifiers is `ge` (prefer `≥` over `&gt;=`).</code>",
- "321": "<code>i ≥ 1</code>",
- "320":
+ "325": "<code>i ≥ 1</code>",
+ "324":
  "<code>Filter.eventually_atTop.{u_3} {α : Type u_3} [Preorder α] [IsDirected α fun x1 x2 =&gt; x1 ≤ x2] {p : α → Prop}\n  [Nonempty α] : (∀ᶠ (x : α) in Filter.atTop, p x) ↔ ∃ a, ∀ b ≥ a, p b</code>",
+ "323":
+ "<code>(fun i =&gt; normalized_hilbert_curve (i + 1) (f i)) =ᶠ[Filter.atTop] fun i =&gt;\n  (T3_real i) (normalized_hilbert_curve i (4 * f i - 3))</code>",
+ "322":
+ "<code>HilbertCurve.T3_real_tendsto_uniformly : TendstoUniformly (fun i x =&gt; (T3_real i) x) (⇑T3_real_lim) Filter.atTop</code>",
+ "321":
+ "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve i (4 * f i - 3)) Filter.atTop (nhds (limit_hilbert_curve (4 * t - 3)))</code>",
+ "320":
+ "<code>ContinuousAffineMap.continuous.{u_1, u_2, u_3, u_4, u_5} {R : Type u_1} {V : Type u_2} {W : Type u_3} {P : Type u_4}\n  {Q : Type u_5} [Ring R] [AddCommGroup V] [Module R V] [TopologicalSpace P] [AddTorsor V P] [AddCommGroup W]\n  [Module R W] [TopologicalSpace Q] [AddTorsor W Q] (f : P →ᴬ[R] Q) : Continuous ⇑f</code>",
  "32":
  "<code class=\"docstring\">`rw` is like `rewrite`, but also tries to close the goal by \"cheap\" (reducible) `rfl` afterwards.\n</code>",
  "319":
- "<code>(fun i =&gt; normalized_hilbert_curve (i + 1) (f i)) =ᶠ[Filter.atTop] fun i =&gt;\n  (T3_real i) (normalized_hilbert_curve i (4 * f i - 3))</code>",
- "318":
- "<code>HilbertCurve.T3_real_tendsto_uniformly : TendstoUniformly (fun i x =&gt; (T3_real i) x) (⇑T3_real_lim) Filter.atTop</code>",
- "317":
- "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve i (4 * f i - 3)) Filter.atTop (nhds (limit_hilbert_curve (4 * t - 3)))</code>",
- "316":
- "<code>ContinuousAffineMap.continuous.{u_1, u_2, u_3, u_4, u_5} {R : Type u_1} {V : Type u_2} {W : Type u_3} {P : Type u_4}\n  {Q : Type u_5} [Ring R] [AddCommGroup V] [Module R V] [TopologicalSpace P] [AddTorsor V P] [AddCommGroup W]\n  [Module R W] [TopologicalSpace Q] [AddTorsor W Q] (f : P →ᴬ[R] Q) : Continuous ⇑f</code>",
- "315":
  "<code>Filter.Tendsto.const_mul.{u_2, u_3} {α : Type u_2} {M : Type u_3} [TopologicalSpace M] [Mul M] [ContinuousMul M] (b : M)\n  {c : M} {f : α → M} {l : Filter α} (h : Filter.Tendsto (fun k =&gt; f k) l (nhds c)) :\n  Filter.Tendsto (fun k =&gt; b * f k) l (nhds (b * c))</code>",
- "314":
+ "318":
  "<code>Filter.Tendsto.sub_const.{u, w} {G : Type w} {α : Type u} [TopologicalSpace G] [Sub G] [ContinuousSub G] {c : G}\n  {f : α → G} {l : Filter α} (h : Filter.Tendsto f l (nhds c)) (b : G) :\n  Filter.Tendsto (fun x =&gt; f x - b) l (nhds (c - b))</code>",
- "313": "<code>HilbertCurve.T3_real (i : ℕ) : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
- "312":
+ "317": "<code>HilbertCurve.T3_real (i : ℕ) : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
+ "316":
  "<code>Filter.Tendsto (fun i =&gt; (T3_real i) (normalized_hilbert_curve i (4 * f i - 3))) Filter.atTop\n  (nhds (T3_real_lim (limit_hilbert_curve (4 * t - 3))))</code>",
- "311":
+ "315":
  "<code>Filter.tendsto_add_atTop_nat (k : ℕ) : Filter.Tendsto (fun a =&gt; a + k) Filter.atTop Filter.atTop</code>",
- "310":
+ "314":
  "<code>ContinuousAt.{u_1, u_2} {X : Type u_1} {Y : Type u_2} [TopologicalSpace X] [TopologicalSpace Y] (f : X → Y) (x : X) :\n  Prop</code><span class=\"sep\"></span><code class=\"docstring\">A function between topological spaces is continuous at a point `x₀`\nif `f x` tends to `f x₀` when `x` tends to `x₀`. </code>",
+ "313":
+ "<code>TendstoUniformly.{u_1, u_2, u_4} {α : Type u_1} {β : Type u_2} {ι : Type u_4} [UniformSpace β] (F : ι → α → β)\n  (f : α → β) (p : Filter ι) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A sequence of functions `Fₙ` converges uniformly to a limiting function `f` with respect to a\nfilter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually\n`(f x, Fₙ x) ∈ u` for all `x`. </code>",
+ "312":
+ "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve (i + 1) (f i)) Filter.atTop (nhds (limit_hilbert_curve t))</code>",
+ "311": "<code>Filter.Tendsto f Filter.atTop (nhds t)</code>",
+ "310": "<code>f = fun i =&gt; ↑(fnat i) / ↑(hilbert_length i)</code>",
  "31":
  "<code class=\"docstring\">The `simp` tactic uses lemmas and hypotheses to simplify the main goal target or\nnon-dependent hypotheses. It has many variants:\n- `simp` simplifies the main goal target using lemmas tagged with the attribute `[simp]`.\n- `simp [h₁, h₂, ..., hₙ]` simplifies the main goal target using the lemmas tagged\n  with the attribute `[simp]` and the given `hᵢ`'s, where the `hᵢ`'s are expressions.-\n- If an `hᵢ` is a defined constant `f`, then `f` is unfolded. If `f` has equational lemmas associated\n  with it (and is not a projection or a `reducible` definition), these are used to rewrite with `f`.\n- `simp [*]` simplifies the main goal target using the lemmas tagged with the\n  attribute `[simp]` and all hypotheses.\n- `simp only [h₁, h₂, ..., hₙ]` is like `simp [h₁, h₂, ..., hₙ]` but does not use `[simp]` lemmas.\n- `simp [-id₁, ..., -idₙ]` simplifies the main goal target using the lemmas tagged\n  with the attribute `[simp]`, but removes the ones named `idᵢ`.\n- `simp at h₁ h₂ ... hₙ` simplifies the hypotheses `h₁ : T₁` ... `hₙ : Tₙ`. If\n  the target or another hypothesis depends on `hᵢ`, a new simplified hypothesis\n  `hᵢ` is introduced, but the old one remains in the local context.\n- `simp at *` simplifies all the hypotheses and the target.\n- `simp [*] at *` simplifies target and all (propositional) hypotheses using the\n  other hypotheses.\n</code>",
  "309":
- "<code>TendstoUniformly.{u_1, u_2, u_4} {α : Type u_1} {β : Type u_2} {ι : Type u_4} [UniformSpace β] (F : ι → α → β)\n  (f : α → β) (p : Filter ι) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A sequence of functions `Fₙ` converges uniformly to a limiting function `f` with respect to a\nfilter `p` if, for any entourage of the diagonal `u`, one has `p`-eventually\n`(f x, Fₙ x) ∈ u` for all `x`. </code>",
- "308":
- "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve (i + 1) (f i)) Filter.atTop (nhds (limit_hilbert_curve t))</code>",
- "307": "<code>Filter.Tendsto f Filter.atTop (nhds t)</code>",
- "306": "<code>f = fun i =&gt; ↑(fnat i) / ↑(hilbert_length i)</code>",
- "305":
  "<code>∀ i ≥ 1, 3 * hilbert_length i ≤ 4 * fnat i ∧ 4 * fnat i &lt; (3 + 1) * hilbert_length i</code>",
- "304":
+ "308":
  "<code>Filter.Tendsto (fun i =&gt; ↑(fnat i) / ↑(hilbert_length i)) Filter.atTop (nhds t)</code>",
- "303":
+ "307":
  "<code>HilbertCurve.sequence_exists (t : ℝ) (n : ℕ) (h : ↑n / 4 ≤ t) (h' : t ≤ (↑n + 1) / 4) :\n  ∃ f,\n    Filter.Tendsto (fun i =&gt; ↑(f i) / ↑(hilbert_length i)) Filter.atTop (nhds t) ∧\n      ∀ i ≥ 1, n * hilbert_length i ≤ 4 * f i ∧ 4 * f i &lt; (n + 1) * hilbert_length i</code>",
- "302": "<code>HilbertCurve.T3_real_lim : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
- "301": "<code>t ∈ Set.Icc (3 / 4) 1</code>",
- "300":
+ "306": "<code>HilbertCurve.T3_real_lim : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
+ "305": "<code>t ∈ Set.Icc (3 / 4) 1</code>",
+ "304":
  "<code>HilbertCurve.limit_hilbert_recurse_bottom_right (t : ℝ) (h : t ∈ Set.Icc (3 / 4) 1) :\n  limit_hilbert_curve t = T3_real_lim (limit_hilbert_curve (4 * t - 3))</code>",
+ "303": "<code>t ≤ (↑n + 1) / 4</code>",
+ "302": "<code>↑n / 4 ≤ t</code>",
+ "301":
+ "<code>sequence_exists (t : ℝ) (n : ℕ) (h : ↑n / 4 ≤ t) (h' : t ≤ (↑n + 1) / 4) :\n  ∃ f,\n    Filter.Tendsto (fun i =&gt; ↑(f i) / ↑(hilbert_length i)) Filter.atTop (nhds t) ∧\n      ∀ i ≥ 1, n * hilbert_length i ≤ 4 * f i ∧ 4 * f i &lt; (n + 1) * hilbert_length i</code>",
+ "300":
+ "<code>LinearMap.mk.{u_14, u_15, u_16, u_17} {R : Type u_14} {S : Type u_15} [Semiring R] [Semiring S] {σ : R →+* S}\n  {M : Type u_16} {M₂ : Type u_17} [AddCommMonoid M] [AddCommMonoid M₂] [Module R M] [Module S M₂] (toAddHom : M →ₙ+ M₂)\n  (map_smul' : ∀ (m : R) (x : M), toAddHom.toFun (m • x) = σ m • toAddHom.toFun x) : M →ₛₗ[σ] M₂</code>",
  "30":
  "<code>Neg.neg.{u} {α : Type u} [self : Neg α] : α → α</code><span class=\"sep\"></span><code class=\"docstring\">`-a` computes the negative or opposite of `a`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `-` in identifiers is `neg` (when used as a unary operator).</code>",
  "3":
  "<code>Prod.swap.{u_1, u_2} {α : Type u_1} {β : Type u_2} : α × β → β × α</code><span class=\"sep\"></span><code class=\"docstring\">Swaps the elements in a pair.\n\nExamples:\n* `(1, 2).swap = (2, 1)`\n* `(\"orange\", -87).swap = (-87, \"orange\")`\n</code>",
- "299": "<code>t ≤ (↑n + 1) / 4</code>",
- "298": "<code>↑n / 4 ≤ t</code>",
- "297":
- "<code>sequence_exists (t : ℝ) (n : ℕ) (h : ↑n / 4 ≤ t) (h' : t ≤ (↑n + 1) / 4) :\n  ∃ f,\n    Filter.Tendsto (fun i =&gt; ↑(f i) / ↑(hilbert_length i)) Filter.atTop (nhds t) ∧\n      ∀ i ≥ 1, n * hilbert_length i ≤ 4 * f i ∧ 4 * f i &lt; (n + 1) * hilbert_length i</code>",
- "296":
- "<code>LinearMap.mk.{u_14, u_15, u_16, u_17} {R : Type u_14} {S : Type u_15} [Semiring R] [Semiring S] {σ : R →+* S}\n  {M : Type u_16} {M₂ : Type u_17} [AddCommMonoid M] [AddCommMonoid M₂] [Module R M] [Module S M₂] (toAddHom : M →ₙ+ M₂)\n  (map_smul' : ∀ (m : R) (x : M), toAddHom.toFun (m • x) = σ m • toAddHom.toFun x) : M →ₛₗ[σ] M₂</code>",
- "295":
+ "299":
  "<code>∀ (p v : ℝ × ℝ),\n  (1, 1 / 2) - (1 / 2) • (v +ᵥ p).swap =\n    (-(1 / 2) • { toFun := Prod.swap, map_add' := ⋯, map_smul' := ⋯ }) v +ᵥ (1, 1 / 2) - (1 / 2) • p.swap</code>",
- "294":
+ "298":
  "<code>∀ (m : ℝ) (x : ℝ × ℝ), (m • x).swap = (RingHom.id ℝ) m • x.swap</code><span class=\"sep\"></span><code class=\"docstring\">The proposition that the function commutes with the actions. </code>",
- "293":
+ "297":
  "<code>∀ (x y : ℝ × ℝ), (x + y).swap = x.swap + y.swap</code><span class=\"sep\"></span><code class=\"docstring\">The proposition that the function preserves addition </code>",
- "292": "<code>ℝ × ℝ →ₗ[ℝ] ℝ × ℝ</code>",
- "291": "<code>ℝ × ℝ → ℝ × ℝ</code>",
- "290": "<code>T3_real_lim : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
+ "296": "<code>ℝ × ℝ →ₗ[ℝ] ℝ × ℝ</code>",
+ "295": "<code>ℝ × ℝ → ℝ × ℝ</code>",
+ "294": "<code>T3_real_lim : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
+ "293":
+ "<code>AffineMap.comp.{u_1, u_2, u_3, u_4, u_5, u_6, u_7} {k : Type u_1} {V1 : Type u_2} {P1 : Type u_3} {V2 : Type u_4}\n  {P2 : Type u_5} {V3 : Type u_6} {P3 : Type u_7} [Ring k] [AddCommGroup V1] [Module k V1] [AddTorsor V1 P1]\n  [AddCommGroup V2] [Module k V2] [AddTorsor V2 P2] [AddCommGroup V3] [Module k V3] [AddTorsor V3 P3] (f : P2 →ᵃ[k] P3)\n  (g : P1 →ᵃ[k] P2) : P1 →ᵃ[k] P3</code><span class=\"sep\"></span><code class=\"docstring\">Composition of affine maps. </code>",
+ "292":
+ "<code>LinearMap.toAffineMap.{u_1, u_2, u_3} {k : Type u_1} {V₁ : Type u_2} {V₂ : Type u_3} [Ring k] [AddCommGroup V₁]\n  [Module k V₁] [AddCommGroup V₂] [Module k V₂] (f : V₁ →ₗ[k] V₂) : V₁ →ᵃ[k] V₂</code><span class=\"sep\"></span><code class=\"docstring\">Reinterpret a linear map as an affine map. </code>",
+ "291":
+ "<code>AffineMap.toContinuousAffineMap.{u, v, w} {𝕜 : Type u} [hnorm : NontriviallyNormedField 𝕜] {E : Type v} [AddCommGroup E]\n  [Module 𝕜 E] [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul 𝕜 E] {F : Type w} [AddCommGroup F]\n  [Module 𝕜 F] [TopologicalSpace F] [IsTopologicalAddGroup F] [ContinuousSMul 𝕜 F] [CompleteSpace 𝕜] [T2Space E]\n  [FiniteDimensional 𝕜 E] (f : E →ᵃ[𝕜] F) : E →ᴬ[𝕜] F</code>",
+ "290":
+ "<code>LinearMap.id.{u_1, u_8} {R : Type u_1} {M : Type u_8} [Semiring R] [AddCommMonoid M] [Module R M] : M →ₗ[R] M</code><span class=\"sep\"></span><code class=\"docstring\">Identity map as a `LinearMap` </code>",
  "29":
  "<code>Eq.{u_1} {α : Sort u_1} : α → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The equality relation. It has one introduction rule, `Eq.refl`.\nWe use `a = b` as notation for `Eq a b`.\nA fundamental property of equality is that it is an equivalence relation.\n```\nvariable (α : Type) (a b c d : α)\nvariable (hab : a = b) (hcb : c = b) (hcd : c = d)\n\nexample : a = d :=\n  Eq.trans (Eq.trans hab (Eq.symm hcb)) hcd\n```\nEquality is much more than an equivalence relation, however. It has the important property that every assertion\nrespects the equivalence, in the sense that we can substitute equal expressions without changing the truth value.\nThat is, given `h1 : a = b` and `h2 : p a`, we can construct a proof for `p b` using substitution: `Eq.subst h1 h2`.\nExample:\n```\nexample (α : Type) (a b : α) (p : α → Prop)\n        (h1 : a = b) (h2 : p a) : p b :=\n  Eq.subst h1 h2\n\nexample (α : Type) (a b : α) (p : α → Prop)\n    (h1 : a = b) (h2 : p a) : p b :=\n  h1 ▸ h2\n```\nThe triangle in the second presentation is a macro built on top of `Eq.subst` and `Eq.symm`, and you can enter it by typing `\\t`.\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `=` in identifiers is `eq`.</code>",
- "289":
- "<code>AffineMap.comp.{u_1, u_2, u_3, u_4, u_5, u_6, u_7} {k : Type u_1} {V1 : Type u_2} {P1 : Type u_3} {V2 : Type u_4}\n  {P2 : Type u_5} {V3 : Type u_6} {P3 : Type u_7} [Ring k] [AddCommGroup V1] [Module k V1] [AddTorsor V1 P1]\n  [AddCommGroup V2] [Module k V2] [AddTorsor V2 P2] [AddCommGroup V3] [Module k V3] [AddTorsor V3 P3] (f : P2 →ᵃ[k] P3)\n  (g : P1 →ᵃ[k] P2) : P1 →ᵃ[k] P3</code><span class=\"sep\"></span><code class=\"docstring\">Composition of affine maps. </code>",
- "288":
- "<code>LinearMap.toAffineMap.{u_1, u_2, u_3} {k : Type u_1} {V₁ : Type u_2} {V₂ : Type u_3} [Ring k] [AddCommGroup V₁]\n  [Module k V₁] [AddCommGroup V₂] [Module k V₂] (f : V₁ →ₗ[k] V₂) : V₁ →ᵃ[k] V₂</code><span class=\"sep\"></span><code class=\"docstring\">Reinterpret a linear map as an affine map. </code>",
+ "289": "<code>ℝ × ℝ →ₗ[ℝ] ℝ × ℝ</code>",
+ "288": "<code>T3_real (i : ℕ) : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
  "287":
- "<code>AffineMap.toContinuousAffineMap.{u, v, w} {𝕜 : Type u} [hnorm : NontriviallyNormedField 𝕜] {E : Type v} [AddCommGroup E]\n  [Module 𝕜 E] [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul 𝕜 E] {F : Type w} [AddCommGroup F]\n  [Module 𝕜 F] [TopologicalSpace F] [IsTopologicalAddGroup F] [ContinuousSMul 𝕜 F] [CompleteSpace 𝕜] [T2Space E]\n  [FiniteDimensional 𝕜 E] (f : E →ᵃ[𝕜] F) : E →ᴬ[𝕜] F</code>",
- "286":
- "<code>LinearMap.id.{u_1, u_8} {R : Type u_1} {M : Type u_8} [Semiring R] [AddCommMonoid M] [Module R M] : M →ₗ[R] M</code><span class=\"sep\"></span><code class=\"docstring\">Identity map as a `LinearMap` </code>",
- "285": "<code>ℝ × ℝ →ₗ[ℝ] ℝ × ℝ</code>",
- "284": "<code>T3_real (i : ℕ) : ℝ × ℝ →ᴬ[ℝ] ℝ × ℝ</code>",
- "283":
  "<code>HilbertCurve.norm_hilbert_inv_dist (i : ℕ) (x : ℝ × ℝ) (xh : x ∈ Set.Icc 0 1) :\n  dist x (normalized_hilbert_curve i (norm_hilbert_inv i x xh)) ≤ (2 ^ i)⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">norm_hilbert_inv is an approximately inverse normalized_hilbert_curve\n</code>",
- "282":
+ "286":
  "<code>Filter.Tendsto (fun n =&gt; (2 ^ n)⁻¹) Filter.atTop (nhds 0)</code>",
- "281":
+ "285":
  "<code>dist_nonneg.{u} {α : Type u} [PseudoMetricSpace α] {x y : α} : 0 ≤ dist x y</code>",
- "280":
+ "284":
  "<code>squeeze_zero.{u_3} {α : Type u_3} {f g : α → ℝ} {t₀ : Filter α} (hf : ∀ (t : α), 0 ≤ f t) (hft : ∀ (t : α), f t ≤ g t)\n  (g0 : Filter.Tendsto g t₀ (nhds 0)) : Filter.Tendsto f t₀ (nhds 0)</code><span class=\"sep\"></span><code class=\"docstring\">Special case of the sandwich lemma; see `tendsto_of_tendsto_of_tendsto_of_le_of_le`\nand `tendsto_of_tendsto_of_tendsto_of_le_of_le'` for the general case. </code>",
+ "283":
+ "<code>Max.max.{u} {α : Type u} [self : Max α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">Returns the greater of its two arguments. </code>",
+ "282":
+ "<code>abs.{u_1} {α : Type u_1} [Lattice α] [AddGroup α] (a : α) : α</code><span class=\"sep\"></span><code class=\"docstring\">`abs a`, denoted `|a|`, is the absolute value of `a`</code>",
+ "281":
+ "<code>tendsto_pow_atTop_nhds_zero_of_abs_lt_one {r : ℝ} (h : |r| &lt; 1) : Filter.Tendsto (fun n =&gt; r ^ n) Filter.atTop (nhds 0)</code>",
+ "280":
+ "<code>tendsto_iff_dist_tendsto_zero.{u, v} {α : Type u} {β : Type v} [PseudoMetricSpace α] {f : β → α} {x : Filter β}\n  {a : α} : Filter.Tendsto f x (nhds a) ↔ Filter.Tendsto (fun b =&gt; dist (f b) a) x (nhds 0)</code>",
  "28":
  "<code>HVAdd.hVAdd.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HVAdd α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a +ᵥ b` computes the sum of `a` and `b`.\nThe meaning of this notation is type-dependent. </code>",
  "279":
- "<code>Max.max.{u} {α : Type u} [self : Max α] : α → α → α</code><span class=\"sep\"></span><code class=\"docstring\">Returns the greater of its two arguments. </code>",
- "278":
- "<code>abs.{u_1} {α : Type u_1} [Lattice α] [AddGroup α] (a : α) : α</code><span class=\"sep\"></span><code class=\"docstring\">`abs a`, denoted `|a|`, is the absolute value of `a`</code>",
- "277":
- "<code>tendsto_pow_atTop_nhds_zero_of_abs_lt_one {r : ℝ} (h : |r| &lt; 1) : Filter.Tendsto (fun n =&gt; r ^ n) Filter.atTop (nhds 0)</code>",
- "276":
- "<code>tendsto_iff_dist_tendsto_zero.{u, v} {α : Type u} {β : Type v} [PseudoMetricSpace α] {f : β → α} {x : Filter β}\n  {a : α} : Filter.Tendsto f x (nhds a) ↔ Filter.Tendsto (fun b =&gt; dist (f b) a) x (nhds 0)</code>",
- "275":
  "<code>Filter.tendsto_iff_seq_tendsto.{u_1, u_2} {α : Type u_1} {β : Type u_2} {f : α → β} {k : Filter α} {l : Filter β}\n  [k.IsCountablyGenerated] :\n  Filter.Tendsto f k l ↔ ∀ (x : ℕ → α), Filter.Tendsto x Filter.atTop k → Filter.Tendsto (f ∘ x) Filter.atTop l</code><span class=\"sep\"></span><code class=\"docstring\">An abstract version of continuity of sequentially continuous functions on metric spaces:\nif a filter `k` is countably generated then `Tendsto f k l` iff for every sequence `u`\nconverging to `k`, `f ∘ u` tends to `l`. </code>",
- "274":
+ "278":
  "<code>tendsto_nhds_unique.{u_1, u_2} {X : Type u_1} {Y : Type u_2} [TopologicalSpace X] [T2Space X] {f : Y → X} {l : Filter Y}\n  {a b : X} [l.NeBot] (ha : Filter.Tendsto f l (nhds a)) (hb : Filter.Tendsto f l (nhds b)) : a = b</code>",
- "273":
+ "277":
  "<code>HilbertCurve.limit_hilbert_continuous : Continuous limit_hilbert_curve</code>",
- "272":
+ "276":
  "<code>Continuous.continuousAt.{u_1, u_2} {X : Type u_1} {Y : Type u_2} [TopologicalSpace X] [TopologicalSpace Y] {f : X → Y}\n  {x : X} (h : Continuous f) : ContinuousAt f x</code>",
- "271":
+ "275":
  "<code>StrictMono.tendsto_atTop {φ : ℕ → ℕ} (h : StrictMono φ) : Filter.Tendsto φ Filter.atTop Filter.atTop</code>",
- "270":
+ "274":
  "<code>HilbertCurve.limit_hilbert_curve_tendstouniformly :\n  TendstoUniformly normalized_hilbert_curve limit_hilbert_curve Filter.atTop</code><span class=\"sep\"></span><code class=\"docstring\">The real Hilbert curve iterations converges uniformly to the limit Hilbert curve.\n</code>",
+ "273":
+ "<code>tendstoUniformly_iff_seq_tendstoUniformly.{u_1, u_2, u_4} {α : Type u_1} {β : Type u_2} {ι : Type u_4} [UniformSpace β]\n  {F : ι → α → β} {f : α → β} {l : Filter ι} [l.IsCountablyGenerated] :\n  TendstoUniformly F f l ↔\n    ∀ (u : ℕ → ι), Filter.Tendsto u Filter.atTop l → TendstoUniformly (fun n =&gt; F (u n)) f Filter.atTop</code>",
+ "272":
+ "<code>TendstoUniformly.tendsto_comp.{u_1, u_2, u_3} {α : Type u_1} {β : Type u_2} {ι : Type u_3} [TopologicalSpace α]\n  [UniformSpace β] {F : ι → α → β} {f : α → β} {x : α} {p : Filter ι} {g : ι → α} (h : TendstoUniformly F f p)\n  (hf : ContinuousAt f x) (hg : Filter.Tendsto g p (nhds x)) : Filter.Tendsto (fun n =&gt; F n (g n)) p (nhds (f x))</code><span class=\"sep\"></span><code class=\"docstring\">If `Fₙ` tends uniformly to `f`, and `gₙ` tends to `x`, then `Fₙ gₙ` tends to `f x`. </code>",
+ "271":
+ "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve (φ i) (f (φ i))) Filter.atTop (nhds (limit_hilbert_curve t))</code>",
+ "270": "<code>Filter.Tendsto (f ∘ φ) Filter.atTop (nhds t)</code>",
  "27":
  "<code>HSub.hSub.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HSub α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a - b` computes the difference of `a` and `b`.\nThe meaning of this notation is type-dependent.\n* For natural numbers, this operator saturates at 0: `a - b = 0` when `a ≤ b`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `-` in identifiers is `sub` (when used as a binary operator).</code>",
- "269":
- "<code>tendstoUniformly_iff_seq_tendstoUniformly.{u_1, u_2, u_4} {α : Type u_1} {β : Type u_2} {ι : Type u_4} [UniformSpace β]\n  {F : ι → α → β} {f : α → β} {l : Filter ι} [l.IsCountablyGenerated] :\n  TendstoUniformly F f l ↔\n    ∀ (u : ℕ → ι), Filter.Tendsto u Filter.atTop l → TendstoUniformly (fun n =&gt; F (u n)) f Filter.atTop</code>",
+ "269": "<code>ℕ → ℝ</code>",
  "268":
- "<code>TendstoUniformly.tendsto_comp.{u_1, u_2, u_3} {α : Type u_1} {β : Type u_2} {ι : Type u_3} [TopologicalSpace α]\n  [UniformSpace β] {F : ι → α → β} {f : α → β} {x : α} {p : Filter ι} {g : ι → α} (h : TendstoUniformly F f p)\n  (hf : ContinuousAt f x) (hg : Filter.Tendsto g p (nhds x)) : Filter.Tendsto (fun n =&gt; F n (g n)) p (nhds (f x))</code><span class=\"sep\"></span><code class=\"docstring\">If `Fₙ` tends uniformly to `f`, and `gₙ` tends to `x`, then `Fₙ gₙ` tends to `f x`. </code>",
- "267":
- "<code>Filter.Tendsto (fun i =&gt; normalized_hilbert_curve (φ i) (f (φ i))) Filter.atTop (nhds (limit_hilbert_curve t))</code>",
- "266": "<code>Filter.Tendsto (f ∘ φ) Filter.atTop (nhds t)</code>",
- "265": "<code>ℕ → ℝ</code>",
- "264":
  "<code class=\"docstring\">`use e₁, e₂, ⋯` is similar to `exists`, but unlike `exists` it is equivalent to applying the tactic\n`refine ⟨e₁, e₂, ⋯, ?_, ⋯, ?_⟩` with any number of placeholders (rather than just one) and\nthen trying to close goals associated to the placeholders with a configurable discharger (rather\nthan just `try trivial`).\n\nExamples:\n\n```lean\nexample : ∃ x : Nat, x = x := by use 42\n\nexample : ∃ x : Nat, ∃ y : Nat, x = y := by use 42, 42\n\nexample : ∃ x : String × String, x.1 = x.2 := by use (\"forty-two\", \"forty-two\")\n```\n\n`use! e₁, e₂, ⋯` is similar but it applies constructors everywhere rather than just for\ngoals that correspond to the last argument of a constructor. This gives the effect that\nnested constructors are being flattened out, with the supplied values being used along the\nleaves and nodes of the tree of constructors.\nWith `use!` one can feed in each `42` one at a time:\n\n```lean\nexample : ∃ p : Nat × Nat, p.1 = p.2 := by use! 42, 42\n\nexample : ∃ p : Nat × Nat, p.1 = p.2 := by use! (42, 42)\n```\n\nThe second line makes use of the fact that `use!` tries refining with the argument before\napplying a constructor. Also note that `use`/`use!` by default uses a tactic\ncalled `use_discharger` to discharge goals, so `use! 42` will close the goal in this example since\n`use_discharger` applies `rfl`, which as a consequence solves for the other `Nat` metavariable.\n\nThese tactics take an optional discharger to handle remaining explicit `Prop` constructor arguments.\nBy default it is `use (discharger := try with_reducible use_discharger) e₁, e₂, ⋯`.\nTo turn off the discharger and keep all goals, use `(discharger := skip)`.\nTo allow \"heavy refls\", use `(discharger := try use_discharger)`.\n</code>",
- "263":
+ "267":
  "<code>StrictMono.{u, v} {α : Type u} {β : Type v} [Preorder α] [Preorder β] (f : α → β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A function `f` is strictly monotone if `a &lt; b` implies `f a &lt; f b`. </code>",
- "262":
+ "266":
  "<code>HilbertCurve.norm_hilbert_inv_bounded (i : ℕ) (x : ℝ × ℝ) (xh : x ∈ Set.Icc 0 1) : norm_hilbert_inv i x xh ∈ Set.Icc 0 1</code><span class=\"sep\"></span><code class=\"docstring\">Approximate inverse of normal_hilbert_curve i lives in [0, 1]\n</code>",
- "261":
+ "265":
  "<code>IsCompact.tendsto_subseq.{u_1} {X : Type u_1} [TopologicalSpace X] [FirstCountableTopology X] {s : Set X} {x : ℕ → X}\n  (hs : IsCompact s) (hx : ∀ (n : ℕ), x n ∈ s) :\n  ∃ a ∈ s, ∃ φ, StrictMono φ ∧ Filter.Tendsto (x ∘ φ) Filter.atTop (nhds a)</code>",
- "260":
+ "264":
  "<code>Filter.Tendsto ((fun n =&gt; norm_hilbert_inv n x xy) ∘ φ) Filter.atTop (nhds t)</code>",
+ "263": "<code>StrictMono φ</code>",
+ "262": "<code>ℕ → ℕ</code>",
+ "261": "<code>t ∈ Set.Icc 0 1</code>",
+ "260":
+ "<code class=\"docstring\">The `obtain` tactic is a combination of `have` and `rcases`. See `rcases` for\na description of supported patterns.\n\n```lean\nobtain ⟨patt⟩ : type := proof\n```\nis equivalent to\n```lean\nhave h : type := proof\nrcases h with ⟨patt⟩\n```\n\nIf `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.\n\nIf `type` is omitted, `:= proof` is required.\n</code>",
  "26":
  "<code>HAdd.hAdd.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HAdd α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a + b` computes the sum of `a` and `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `+` in identifiers is `add`.</code>",
- "259": "<code>StrictMono φ</code>",
- "258": "<code>ℕ → ℕ</code>",
- "257": "<code>t ∈ Set.Icc 0 1</code>",
- "256":
- "<code class=\"docstring\">The `obtain` tactic is a combination of `have` and `rcases`. See `rcases` for\na description of supported patterns.\n\n```lean\nobtain ⟨patt⟩ : type := proof\n```\nis equivalent to\n```lean\nhave h : type := proof\nrcases h with ⟨patt⟩\n```\n\nIf `⟨patt⟩` is omitted, `rcases` will try to infer the pattern.\n\nIf `type` is omitted, `:= proof` is required.\n</code>",
- "255": "<code>IsCompact (Set.Icc 0 1)</code>",
- "254":
+ "259": "<code>IsCompact (Set.Icc 0 1)</code>",
+ "258":
  "<code>CompactIccSpace.isCompact_Icc.{u_1} {α : Type u_1} {inst✝ : TopologicalSpace α} {inst✝¹ : Preorder α}\n  [self : CompactIccSpace α] {a b : α} : IsCompact (Set.Icc a b)</code><span class=\"sep\"></span><code class=\"docstring\">A closed interval `Set.Icc a b` is a compact set for all `a` and `b`. </code>",
- "253":
+ "257":
  "<code>IsCompact.{u_1} {X : Type u_1} [TopologicalSpace X] (s : Set X) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A set `s` is compact if for every nontrivial filter `f` that contains `s`,\nthere exists `a ∈ s` such that every set of `f` meets every neighborhood of `a`. </code>",
- "252":
+ "256":
  "<code>Set.image.{u, v} {α : Type u} {β : Type v} (f : α → β) (s : Set α) : Set β</code><span class=\"sep\"></span><code class=\"docstring\">The image of `s : Set α` by `f : α → β`, written `f '' s`, is the set of `b : β` such that\n`f a = b` for some `a ∈ s`. </code>",
- "251":
+ "255":
  "<code>Membership.mem.{u, v} {α : outParam (Type u)} {γ : Type v} [self : Membership α γ] : γ → α → Prop</code><span class=\"sep\"></span><code class=\"docstring\">The membership relation `a ∈ s : Prop` where `a : α`, `s : γ`. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∈` in identifiers is `mem`.</code>",
- "250": "<code>x ∈ Set.Icc 0 1</code>",
+ "254": "<code>x ∈ Set.Icc 0 1</code>",
+ "253":
+ "<code>Set.Icc.{u_1} {α : Type u_1} [Preorder α] (a b : α) : Set α</code><span class=\"sep\"></span><code class=\"docstring\">`Icc a b` is the left-closed right-closed interval $[a, b]$. </code>",
+ "252": "<code>HilbertCurve.limit_hilbert_curve (t : ℝ) : ℝ × ℝ</code>",
+ "251":
+ "<code>Set.SurjOn.{u, v} {α : Type u} {β : Type v} (f : α → β) (s : Set α) (t : Set β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`f` is surjective from `s` to `t` if `t` is contained in the image of `s`. </code>",
+ "250":
+ "<code>HilbertCurve.limit_hilbert_surj_on : Set.SurjOn limit_hilbert_curve (Set.Icc 0 1) (Set.Icc 0 1)</code>",
  "25":
  "<code>HPow.hPow.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HPow α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a ^ b` computes `a` to the power of `b`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `^` in identifiers is `pow`.</code>",
  "249":
- "<code>Set.Icc.{u_1} {α : Type u_1} [Preorder α] (a b : α) : Set α</code><span class=\"sep\"></span><code class=\"docstring\">`Icc a b` is the left-closed right-closed interval $[a, b]$. </code>",
- "248": "<code>HilbertCurve.limit_hilbert_curve (t : ℝ) : ℝ × ℝ</code>",
- "247":
- "<code>Set.SurjOn.{u, v} {α : Type u} {β : Type v} (f : α → β) (s : Set α) (t : Set β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`f` is surjective from `s` to `t` if `t` is contained in the image of `s`. </code>",
- "246":
- "<code>HilbertCurve.limit_hilbert_surj_on : Set.SurjOn limit_hilbert_curve (Set.Icc 0 1) (Set.Icc 0 1)</code>",
- "245":
  "<code>Classical.choose.{u} {α : Sort u} {p : α → Prop} (h : ∃ x, p x) : α</code><span class=\"sep\"></span><code class=\"docstring\">Given that there exists an element satisfying `p`, returns one such element.\n\nThis is a straightforward consequence of, and equivalent to, `Classical.choice`.\n\nSee also `choose_spec`, which asserts that the returned value has property `p`.\n</code>",
- "244":
+ "248":
  "<code>limit_hilbert_curve' (t : ℝ) : ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">Name has a ' to avoid name conflicts. </code>",
- "243":
+ "247":
  "<code>HilbertCurve.normal_is_cauchy (t : ℝ) : CauchySeq fun x =&gt; normalized_hilbert_curve x t</code><span class=\"sep\"></span><code class=\"docstring\">The Hilbert curve iterations form a Cauchy sequence at each t.\n</code>",
- "242":
+ "246":
  "<code>CauchySeq.{u, v} {α : Type u} {β : Type v} [uniformSpace : UniformSpace α] [Preorder β] (u : β → α) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">Cauchy sequences. Usually defined on ℕ, but often it is also useful to say that a function\ndefined on ℝ is Cauchy at +∞ to deduce convergence. Therefore, we define it in a type class that\nis general enough to cover both ℕ and ℝ, which are the main motivating examples. </code>",
- "241":
+ "245":
  "<code>cauchySeq_tendsto_of_complete.{u, v} {α : Type u} {β : Type v} [uniformSpace : UniformSpace α] [Preorder β]\n  [CompleteSpace α] {u : β → α} (H : CauchySeq u) : ∃ x, Filter.Tendsto u Filter.atTop (nhds x)</code><span class=\"sep\"></span><code class=\"docstring\">A Cauchy sequence in a complete space converges </code>",
- "240":
+ "244":
  "<code>nhds.{u_3} {X : Type u_3} [TopologicalSpace X] (x : X) : Filter X</code><span class=\"sep\"></span><code class=\"docstring\">A set is called a neighborhood of `x` if it contains an open set around `x`. The set of all\nneighborhoods of `x` forms a filter, the neighborhood filter at `x`, is here defined as the\ninfimum over the principal filters of all open sets containing `x`. </code>",
+ "243":
+ "<code>Filter.atTop.{u_3} {α : Type u_3} [Preorder α] : Filter α</code><span class=\"sep\"></span><code class=\"docstring\">`atTop` is the filter representing the limit `→ ∞` on an ordered set.\nIt is generated by the collection of up-sets `{b | a ≤ b}`.\n(The preorder need not have a top element for this to be well defined,\nand indeed is trivial when a top element exists.) </code>",
+ "242":
+ "<code>Filter.Tendsto.{u_1, u_2} {α : Type u_1} {β : Type u_2} (f : α → β) (l₁ : Filter α) (l₂ : Filter β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Filter.Tendsto` is the generic \"limit of a function\" predicate.\n`Tendsto f l₁ l₂` asserts that for every `l₂` neighborhood `a`,\nthe `f`-preimage of `a` is an `l₁` neighborhood. </code>",
+ "241":
+ "<code>HilbertCurve.limit_hilbert_curve_exists (t : ℝ) :\n  ∃ x, Filter.Tendsto (fun x =&gt; normalized_hilbert_curve x t) Filter.atTop (nhds x)</code><span class=\"sep\"></span><code class=\"docstring\">The real Hilbert converges at each point.\n</code>",
+ "240":
+ "<code>HilbertCurve.norm_hilbert_inv (i : ℕ) (x : ℝ × ℝ) (xh : x ∈ Set.Icc 0 1) : ℝ</code><span class=\"sep\"></span><code class=\"docstring\">Approximate inverse of normal_hilbert_curve i\n</code>",
  "24":
  "<code>Prod.mk.{u, v} {α : Type u} {β : Type v} (fst : α) (snd : β) : α × β</code><span class=\"sep\"></span><code class=\"docstring\">Constructs a pair. This is usually written `(x, y)` instead of `Prod.mk x y`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `(a, b)` in identifiers is `mk`.</code>",
  "239":
- "<code>Filter.atTop.{u_3} {α : Type u_3} [Preorder α] : Filter α</code><span class=\"sep\"></span><code class=\"docstring\">`atTop` is the filter representing the limit `→ ∞` on an ordered set.\nIt is generated by the collection of up-sets `{b | a ≤ b}`.\n(The preorder need not have a top element for this to be well defined,\nand indeed is trivial when a top element exists.) </code>",
- "238":
- "<code>Filter.Tendsto.{u_1, u_2} {α : Type u_1} {β : Type u_2} (f : α → β) (l₁ : Filter α) (l₂ : Filter β) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Filter.Tendsto` is the generic \"limit of a function\" predicate.\n`Tendsto f l₁ l₂` asserts that for every `l₂` neighborhood `a`,\nthe `f`-preimage of `a` is an `l₁` neighborhood. </code>",
- "237":
- "<code>HilbertCurve.limit_hilbert_curve_exists (t : ℝ) :\n  ∃ x, Filter.Tendsto (fun x =&gt; normalized_hilbert_curve x t) Filter.atTop (nhds x)</code><span class=\"sep\"></span><code class=\"docstring\">The real Hilbert converges at each point.\n</code>",
- "236":
- "<code>HilbertCurve.norm_hilbert_inv (i : ℕ) (x : ℝ × ℝ) (xh : x ∈ Set.Icc 0 1) : ℝ</code><span class=\"sep\"></span><code class=\"docstring\">Approximate inverse of normal_hilbert_curve i\n</code>",
- "235":
  "<code>HilbertCurve.exists_normal_hilbert_approx_inv (i : ℕ) (x : ℝ × ℝ) (xh : x ∈ Set.Icc 0 1) :\n  ∃ t ∈ Set.Icc 0 1, dist x (normalized_hilbert_curve i t) ≤ (2 ^ i)⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">Each iteration also touches most points.\n</code>",
- "234":
+ "238":
  "<code class=\"docstring\">`linarith` attempts to find a contradiction between hypotheses that are linear (in)equalities.\nEquivalently, it can prove a linear inequality by assuming its negation and proving `False`.\n\nIn theory, `linarith` should prove any goal that is true in the theory of linear arithmetic over\nthe rationals. While there is some special handling for non-dense orders like `Nat` and `Int`,\nthis tactic is not complete for these theories and will not prove every true goal. It will solve\ngoals over arbitrary types that instantiate `LinearOrderedCommRing`.\n\nAn example:\n```lean\nexample (x y z : ℚ) (h1 : 2*x &lt; 3*y) (h2 : -4*x + 2*z &lt; 0)\n        (h3 : 12*y - 4* z &lt; 0) : False := by\n  linarith\n```\n\n`linarith` will use all appropriate hypotheses and the negation of the goal, if applicable.\nDisequality hypotheses require case splitting and are not normally considered\n(see the `splitNe` option below).\n\n`linarith [t1, t2, t3]` will additionally use proof terms `t1, t2, t3`.\n\n`linarith only [h1, h2, h3, t1, t2, t3]` will use only the goal (if relevant), local hypotheses\n`h1`, `h2`, `h3`, and proofs `t1`, `t2`, `t3`. It will ignore the rest of the local context.\n\n`linarith!` will use a stronger reducibility setting to try to identify atoms. For example,\n```lean\nexample (x : ℚ) : id x ≥ x := by\n  linarith\n```\nwill fail, because `linarith` will not identify `x` and `id x`. `linarith!` will.\nThis can sometimes be expensive.\n\n`linarith (config := { .. })` takes a config object with five\noptional arguments:\n* `discharger` specifies a tactic to be used for reducing an algebraic equation in the\n  proof stage. The default is `ring`. Other options include `simp` for basic\n  problems.\n* `transparency` controls how hard `linarith` will try to match atoms to each other. By default\n  it will only unfold `reducible` definitions.\n* If `splitHypotheses` is true, `linarith` will split conjunctions in the context into separate\n  hypotheses.\n* If `splitNe` is `true`, `linarith` will case split on disequality hypotheses.\n  For a given `x ≠ y` hypothesis, `linarith` is run with both `x &lt; y` and `x &gt; y`,\n  and so this runs linarith exponentially many times with respect to the number of\n  disequality hypotheses. (`false` by default.)\n* If `exfalso` is `false`, `linarith` will fail when the goal is neither an inequality nor `False`.\n  (`true` by default.)\n* `restrict_type` (not yet implemented in mathlib4)\n  will only use hypotheses that are inequalities over `tp`. This is useful\n  if you have e.g. both integer and rational valued inequalities in the local context, which can\n  sometimes confuse the tactic.\n\nA variant, `nlinarith`, does some basic preprocessing to handle some nonlinear goals.\n\nThe option `set_option trace.linarith true` will trace certain intermediate stages of the `linarith`\nroutine.\n</code>",
- "233":
+ "237":
  "<code class=\"docstring\">Tactic for evaluating expressions in *commutative* (semi)rings, allowing for variables in the\nexponent. If the goal is not appropriate for `ring` (e.g. not an equality) `ring_nf` will be\nsuggested.\n\n* `ring!` will use a more aggressive reducibility setting to determine equality of atoms.\n* `ring1` fails if the target is not an equality.\n\nFor example:\n```\nexample (n : ℕ) (m : ℤ) : 2^(n+1) * m = 2 * 2^n * m := by ring\nexample (a b : ℤ) (n : ℕ) : (a + b)^(n + 2) = (a^2 + b^2 + a * b + b * a) * (a + b)^n := by ring\nexample (x y : ℕ) : x + id y = y + id x := by ring!\nexample (x : ℕ) (h : x * 2 &gt; 5): x + x &gt; 5 := by ring; assumption -- suggests ring_nf\n```\n</code>",
- "232":
+ "236":
  "<code>HilbertCurve.normal_hilbert_across_dist (i n : ℕ) :\n  dist (normalized_hilbert_curve i (↑(n / 4) / ↑(hilbert_length i)))\n      (normalized_hilbert_curve (i + 1) (↑n / ↑(hilbert_length (i + 1)))) ≤\n    (2 ^ (i + 1))⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">Each real Hilbert curve iteration divides the previous into smaller\ndeviations only 1/2^(i+1) away from the previous.\n</code>",
- "231": "<code>∀ (n : ℕ), ↑↑n = ↑n</code>",
- "230":
+ "235": "<code>∀ (n : ℕ), ↑↑n = ↑n</code>",
+ "234":
  "<code>Iff.mpr {a b : Prop} (self : a ↔ b) : b → a</code><span class=\"sep\"></span><code class=\"docstring\">Modus ponens for if and only if, reversed. If `a ↔ b` and `b`, then `a`. </code>",
+ "233": "<code>Int.eq_natCast_toNat {a : ℤ} : a = ↑a.toNat ↔ 0 ≤ a</code>",
+ "232":
+ "<code class=\"docstring\">`refine e` behaves like `exact e`, except that named (`?x`) or unnamed (`?_`)\nholes in `e` that are not solved by unification with the main goal's target type\nare converted into new goals, using the hole's name, if any, as the goal case name.\n</code>",
+ "231":
+ "<code>⌊t * ↑(hilbert_length i)⌋ = ⌊t * ↑(hilbert_length (i + 1))⌋ / 4</code>",
+ "230":
+ "<code class=\"docstring\">Normalize numerical expressions. Supports the operations `+` `-` `*` `/` `⁻¹` `^` and `%`\nover numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,\nand can prove goals of the form `A = B`, `A ≠ B`, `A &lt; B` and `A ≤ B`, where `A` and `B` are\nnumerical expressions. It also has a relatively simple primality prover.\n</code>",
  "23":
  "<code>Prod.{u, v} (α : Type u) (β : Type v) : Type (max u v)</code><span class=\"sep\"></span><code class=\"docstring\">The product type, usually written `α × β`. Product types are also called pair or tuple types.\nElements of this type are pairs in which the first element is an `α` and the second element is a\n`β`.\n\nProducts nest to the right, so `(x, y, z) : α × β × γ` is equivalent to `(x, (y, z)) : α × (β × γ)`.\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `×` in identifiers is `Prod`.</code>",
- "229": "<code>Int.eq_natCast_toNat {a : ℤ} : a = ↑a.toNat ↔ 0 ≤ a</code>",
- "228":
- "<code class=\"docstring\">`refine e` behaves like `exact e`, except that named (`?x`) or unnamed (`?_`)\nholes in `e` that are not solved by unification with the main goal's target type\nare converted into new goals, using the hole's name, if any, as the goal case name.\n</code>",
- "227":
- "<code>⌊t * ↑(hilbert_length i)⌋ = ⌊t * ↑(hilbert_length (i + 1))⌋ / 4</code>",
- "226":
- "<code class=\"docstring\">Normalize numerical expressions. Supports the operations `+` `-` `*` `/` `⁻¹` `^` and `%`\nover numerical types such as `ℕ`, `ℤ`, `ℚ`, `ℝ`, `ℂ` and some general algebraic types,\nand can prove goals of the form `A = B`, `A ≠ B`, `A &lt; B` and `A ≤ B`, where `A` and `B` are\nnumerical expressions. It also has a relatively simple primality prover.\n</code>",
- "225":
+ "229":
  "<code class=\"docstring\">Tactic solving goals of the form `0 ≤ x`, `0 &lt; x` and `x ≠ 0`.  The tactic works recursively\naccording to the syntax of the expression `x`, if the atoms composing the expression all have\nnumeric lower bounds which can be proved positive/nonnegative/nonzero by `norm_num`.  This tactic\neither closes the goal or fails.\n\nExamples:\n```\nexample {a : ℤ} (ha : 3 &lt; a) : 0 ≤ a ^ 3 + a := by positivity\n\nexample {a : ℤ} (ha : 1 &lt; a) : 0 &lt; |(3:ℤ) + a| := by positivity\n\nexample {b : ℤ} : 0 ≤ max (-3) (b ^ 2) := by positivity\n```\n</code>",
- "224":
+ "228":
  "<code>HilbertCurve.div_floor_mul_eq_floor (t : ℝ) (n : ℕ) (h : 0 ≤ t) (h' : 0 &lt; n) : ⌊t * ↑n⌋ / ↑n = ⌊t⌋</code><span class=\"sep\"></span><code class=\"docstring\">If you multiply by n, floor, then integer divide by n, then it is the same as floor.\n</code>",
- "223":
+ "227":
  "<code class=\"docstring\">* `symm` applies to a goal whose target has the form `t ~ u` where `~` is a symmetric relation,\n  that is, a relation which has a symmetry lemma tagged with the attribute [symm].\n  It replaces the target with `u ~ t`.\n* `symm at h` will rewrite a hypothesis `h : t ~ u` to `h : u ~ t`.\n</code>",
- "222":
+ "226":
  "<code>mul_assoc.{u_1} {G : Type u_1} [Semigroup G] (a b c : G) : a * b * c = a * (b * c)</code>",
- "221":
+ "225":
  "<code>Nat.cast_ofNat.{u_1} {R : Type u_1} {n : ℕ} [NatCast R] [n.AtLeastTwo] : ↑(OfNat.ofNat n) = OfNat.ofNat n</code>",
- "220":
+ "224":
  "<code>Nat.cast_mul.{u_1} {α : Type u_1} [NonAssocSemiring α] (m n : ℕ) : ↑(m * n) = ↑m * ↑n</code>",
+ "223":
+ "<code>mul_comm.{u_1} {G : Type u_1} [CommMagma G] (a b : G) : a * b = b * a</code>",
+ "222": "<code>0 &lt; t</code>",
+ "221":
+ "<code>not_le.{u_1} {α : Type u_1} [LinearOrder α] {a b : α} : ¬a ≤ b ↔ b &lt; a</code>",
+ "220":
+ "<code>HilbertCurve.normal_hilbert_start (i : ℕ) : normalized_hilbert_curve i 0 = (0, 0)</code><span class=\"sep\"></span><code class=\"docstring\">Every iteration of the hilbert curve starts at 0 when t = 0.\n</code>",
  "22":
  "<code>Nat : Type</code><span class=\"sep\"></span><code class=\"docstring\">The natural numbers, starting at zero.\n\nThis type is special-cased by both the kernel and the compiler, and overridden with an efficient\nimplementation. Both use a fast arbitrary-precision arithmetic library (usually\n[GMP](https://gmplib.org/)); at runtime, `Nat` values that are sufficiently small are unboxed.\n</code>",
- "219":
- "<code>mul_comm.{u_1} {G : Type u_1} [CommMagma G] (a b : G) : a * b = b * a</code>",
- "218": "<code>0 &lt; t</code>",
- "217":
- "<code>not_le.{u_1} {α : Type u_1} [LinearOrder α] {a b : α} : ¬a ≤ b ↔ b &lt; a</code>",
- "216":
- "<code>HilbertCurve.normal_hilbert_start (i : ℕ) : normalized_hilbert_curve i 0 = (0, 0)</code><span class=\"sep\"></span><code class=\"docstring\">Every iteration of the hilbert curve starts at 0 when t = 0.\n</code>",
- "215": "<code>∀ (n : ℕ), ↑⌊t * ↑n⌋ / ↑n ≤ 0</code>",
- "214":
+ "219": "<code>∀ (n : ℕ), ↑⌊t * ↑n⌋ / ↑n ≤ 0</code>",
+ "218":
  "<code>HilbertCurve.normalized_hilbert_curve_nonpos (i : ℕ) (t : ℝ) (h : t ≤ 0) :\n  normalized_hilbert_curve i t = normalized_hilbert_curve i 0</code><span class=\"sep\"></span><code class=\"docstring\">For t ≤ 0, the real hilbert curve is still 0.\n</code>",
- "213":
+ "217":
  "<code>Nat.cast_nonneg.{u_3} {α : Type u_3} [Semiring α] [PartialOrder α] [IsOrderedRing α] (n : ℕ) : 0 ≤ ↑n</code><span class=\"sep\"></span><code class=\"docstring\">Specialisation of `Nat.cast_nonneg'`, which seems to be easier for Lean to use. </code>",
- "212":
+ "216":
  "<code>mul_nonpos_of_nonpos_of_nonneg.{u_1} {α : Type u_1} [MulZeroClass α] {a b : α} [Preorder α] [MulPosMono α] (ha : a ≤ 0)\n  (hb : 0 ≤ b) : a * b ≤ 0</code>",
- "211":
+ "215":
  "<code>Int.floor_nonpos.{u_2} {α : Type u_2} [Ring α] [LinearOrder α] [FloorRing α] {a : α} [IsStrictOrderedRing α]\n  (ha : a ≤ 0) : ⌊a⌋ ≤ 0</code>",
- "210":
+ "214":
  "<code class=\"docstring\">The `norm_cast` family of tactics is used to normalize certain coercions (*casts*) in expressions.\n- `norm_cast` normalizes casts in the target.\n- `norm_cast at h` normalizes casts in hypothesis `h`.\n\nThe tactic is basically a version of `simp` with a specific set of lemmas to move casts\nupwards in the expression.\nTherefore even in situations where non-terminal `simp` calls are discouraged (because of fragility),\n`norm_cast` is considered to be safe.\nIt also has special handling of numerals.\n\nFor instance, given an assumption\n```lean\na b : ℤ\nh : ↑a + ↑b &lt; (10 : ℚ)\n```\nwriting `norm_cast at h` will turn `h` into\n```lean\nh : a + b &lt; 10\n```\n\nThere are also variants of basic tactics that use `norm_cast` to normalize expressions during\ntheir operation, to make them more flexible about the expressions they accept\n(we say that it is a tactic *modulo* the effects of `norm_cast`):\n- `exact_mod_cast` for `exact` and `apply_mod_cast` for `apply`.\n  Writing `exact_mod_cast h` and `apply_mod_cast h` will normalize casts\n  in the goal and `h` before using `exact h` or `apply h`.\n- `rw_mod_cast` for `rw`. It applies `norm_cast` between rewrites.\n- `assumption_mod_cast` for `assumption`.\n  This is effectively `norm_cast at *; assumption`, but more efficient.\n  It normalizes casts in the goal and, for every hypothesis `h` in the context,\n  it will try to normalize casts in `h` and use `exact h`.\n\nSee also `push_cast`, which moves casts inwards rather than lifting them outwards.\n</code>",
+ "213":
+ "<code>div_nonpos_of_nonpos_of_nonneg.{u_3} {G₀ : Type u_3} [GroupWithZero G₀] [PartialOrder G₀] [MulPosReflectLT G₀]\n  {a b : G₀} (ha : a ≤ 0) (hb : 0 ≤ b) : a / b ≤ 0</code>",
+ "212":
+ "<code>Not (a : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Not p`, or `¬p`, is the negation of `p`. It is defined to be `p → False`,\nso if your goal is `¬p` you can use `intro h` to turn the goal into\n`h : p ⊢ False`, and if you have `hn : ¬p` and `h : p` then `hn h : False`\nand `(hn h).elim` will prove anything.\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `¬` in identifiers is `not`.</code>",
+ "211": "<code>¬t ≤ 0</code>",
+ "210": "<code>t ≤ 0</code>",
  "21": "<code>Ring R</code>",
  "209":
- "<code>div_nonpos_of_nonpos_of_nonneg.{u_3} {G₀ : Type u_3} [GroupWithZero G₀] [PartialOrder G₀] [MulPosReflectLT G₀]\n  {a b : G₀} (ha : a ≤ 0) (hb : 0 ≤ b) : a / b ≤ 0</code>",
- "208":
- "<code>Not (a : Prop) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`Not p`, or `¬p`, is the negation of `p`. It is defined to be `p → False`,\nso if your goal is `¬p` you can use `intro h` to turn the goal into\n`h : p ⊢ False`, and if you have `hn : ¬p` and `h : p` then `hn h : False`\nand `(hn h).elim` will prove anything.\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `¬` in identifiers is `not`.</code>",
- "207": "<code>¬t ≤ 0</code>",
- "206": "<code>t ≤ 0</code>",
- "205":
  "<code class=\"docstring\">`by_cases (h :)? p` splits the main goal into two cases, assuming `h : p` in the first branch, and `h : ¬ p` in the second branch.\n</code>",
- "204":
+ "208":
  "<code>dist (normalized_hilbert_curve i (↑⌊t * ↑(hilbert_length i)⌋ / ↑(hilbert_length i)))\n    (normalized_hilbert_curve (i + 1) (↑⌊t * ↑(hilbert_length (i + 1))⌋ / ↑(hilbert_length (i + 1)))) ≤\n  (2 ^ (i + 1))⁻¹</code>",
- "203":
+ "207":
  "<code>dist_comm.{u} {α : Type u} [PseudoMetricSpace α] (x y : α) : dist x y = dist y x</code>",
- "202":
+ "206":
  "<code>dist (normalized_hilbert_curve (i + 1) (↑⌊t * ↑(hilbert_length (i + 1))⌋ / ↑(hilbert_length (i + 1))))\n    (normalized_hilbert_curve (i + 1) t) ≤\n  (2 ^ (i + 1))⁻¹</code>",
- "201":
+ "205":
  "<code>HilbertCurve.normal_hilbert_dist (i : ℕ) (t : ℝ) :\n  dist (normalized_hilbert_curve i t) (normalized_hilbert_curve i (↑⌊t * ↑(hilbert_length i)⌋ / ↑(hilbert_length i))) ≤\n    (2 ^ i)⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">Each point on a real Hilbert curve iteration is close to an interpolated point.\n</code>",
- "200":
+ "204":
  "<code>dist (normalized_hilbert_curve i t) (normalized_hilbert_curve i (↑⌊t * ↑(hilbert_length i)⌋ / ↑(hilbert_length i))) ≤\n  (2 ^ i)⁻¹</code>",
+ "203":
+ "<code>dist_triangle4.{u} {α : Type u} [PseudoMetricSpace α] (x y z w : α) : dist x w ≤ dist x y + dist y z + dist z w</code>",
+ "202":
+ "<code>Dist.dist.{u_3} {α : Type u_3} [self : Dist α] : α → α → ℝ</code><span class=\"sep\"></span><code class=\"docstring\">Distance between two points </code>",
+ "201":
+ "<code>HilbertCurve.normal_subdivision_size (i : ℕ) (t : ℝ) :\n  dist (normalized_hilbert_curve i t) (normalized_hilbert_curve (i + 1) t) ≤ 2 * (2 ^ i)⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">The real Hilbert curve only moves 1 / 2^(i-1) each iteration for each t.\n</code>",
+ "200":
+ "<code>Int.floor.{u_2} {α : Type u_2} [Ring α] [LinearOrder α] [FloorRing α] : α → ℤ</code><span class=\"sep\"></span><code class=\"docstring\">`Int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. </code>",
  "20":
  "<code class=\"docstring\">A type universe. `Type ≡ Type 0`, `Type u ≡ Sort (u + 1)`. </code>",
  "2": "<code>T0_nat : ℕ × ℕ → ℕ × ℕ</code>",
- "199":
- "<code>dist_triangle4.{u} {α : Type u} [PseudoMetricSpace α] (x y z w : α) : dist x w ≤ dist x y + dist y z + dist z w</code>",
- "198":
- "<code>Dist.dist.{u_3} {α : Type u_3} [self : Dist α] : α → α → ℝ</code><span class=\"sep\"></span><code class=\"docstring\">Distance between two points </code>",
+ "199": "<code>0 &lt; n</code>",
+ "198": "<code>0 ≤ t</code>",
  "197":
- "<code>HilbertCurve.normal_subdivision_size (i : ℕ) (t : ℝ) :\n  dist (normalized_hilbert_curve i t) (normalized_hilbert_curve (i + 1) t) ≤ 2 * (2 ^ i)⁻¹</code><span class=\"sep\"></span><code class=\"docstring\">The real Hilbert curve only moves 1 / 2^(i-1) each iteration for each t.\n</code>",
- "196":
- "<code>Int.floor.{u_2} {α : Type u_2} [Ring α] [LinearOrder α] [FloorRing α] : α → ℤ</code><span class=\"sep\"></span><code class=\"docstring\">`Int.floor a` is the greatest integer `z` such that `z ≤ a`. It is denoted with `⌊a⌋`. </code>",
- "195": "<code>0 &lt; n</code>",
- "194": "<code>0 ≤ t</code>",
- "193":
  "<code>div_floor_mul_eq_floor (t : ℝ) (n : ℕ) (h : 0 ≤ t) (h' : 0 &lt; n) : ⌊t * ↑n⌋ / ↑n = ⌊t⌋</code><span class=\"sep\"></span><code class=\"docstring\">If you multiply by n, floor, then integer divide by n, then it is the same as floor.\n</code>",
- "192":
+ "196":
  "<code>continuous_mul_right.{u_3} {M : Type u_3} [TopologicalSpace M] [Mul M] [ContinuousMul M] (a : M) :\n  Continuous fun b =&gt; b * a</code>",
- "191":
+ "195":
  "<code>Continuous.comp.{u_1, u_2, u_3} {X : Type u_1} {Y : Type u_2} {Z : Type u_3} [TopologicalSpace X] [TopologicalSpace Y]\n  [TopologicalSpace Z] {f : X → Y} {g : Y → Z} (hg : Continuous g) (hf : Continuous f) : Continuous (g ∘ f)</code>",
- "190": "<code>Continuous (interpolate_points f)</code>",
+ "194": "<code>Continuous (interpolate_points f)</code>",
+ "193":
+ "<code>Int : Type</code><span class=\"sep\"></span><code class=\"docstring\">The integers.\n\nThis type is special-cased by the compiler and overridden with an efficient implementation. The\nruntime has a special representation for `Int` that stores “small” signed numbers directly, while\nlarger numbers use a fast arbitrary-precision arithmetic library (usually\n[GMP](https://gmplib.org/)). A “small number” is an integer that can be encoded with one fewer bits\nthan the platform's pointer size (i.e. 63 bits on 64-bit architectures and 31 bits on 32-bit\narchitectures).\n</code>",
+ "192":
+ "<code>f = ⇑(scale (2 ^ i)⁻¹) ∘ (fun x =&gt; (↑x.1, ↑x.2)) ∘ hilbert_curve i ∘ fun x =&gt; x.toNat</code>",
+ "191":
+ "<code>Inv.inv.{u} {α : Type u} [self : Inv α] : α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a⁻¹` computes the inverse of `a`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `⁻¹` in identifiers is `inv`.</code>",
+ "190":
+ "<code>HilbertCurve.scale (s : ℝ) : ℝ × ℝ →L[ℝ] ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">scale is smul as a LinearMap\n</code>",
  "19":
  "<code class=\"docstring\">`by tac` constructs a term of the expected type by running the tactic(s) `tac`. </code>",
  "189":
- "<code>interpolate_is_continuous (f : ℤ → ℝ × ℝ) : Continuous (interpolate_points f)</code><span class=\"sep\"></span><code class=\"docstring\">Interpolation is continuous\n</code>",
- "188":
- "<code>Int : Type</code><span class=\"sep\"></span><code class=\"docstring\">The integers.\n\nThis type is special-cased by the compiler and overridden with an efficient implementation. The\nruntime has a special representation for `Int` that stores “small” signed numbers directly, while\nlarger numbers use a fast arbitrary-precision arithmetic library (usually\n[GMP](https://gmplib.org/)). A “small number” is an integer that can be encoded with one fewer bits\nthan the platform's pointer size (i.e. 63 bits on 64-bit architectures and 31 bits on 32-bit\narchitectures).\n</code>",
- "187":
- "<code>f = ⇑(scale (2 ^ i)⁻¹) ∘ (fun x =&gt; (↑x.1, ↑x.2)) ∘ hilbert_curve i ∘ fun x =&gt; x.toNat</code>",
- "186":
- "<code>Inv.inv.{u} {α : Type u} [self : Inv α] : α → α</code><span class=\"sep\"></span><code class=\"docstring\">`a⁻¹` computes the inverse of `a`.\nThe meaning of this notation is type-dependent. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `⁻¹` in identifiers is `inv`.</code>",
- "185":
- "<code>HilbertCurve.scale (s : ℝ) : ℝ × ℝ →L[ℝ] ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">scale is smul as a LinearMap\n</code>",
- "184":
  "<code>Function.comp.{u, v, w} {α : Sort u} {β : Sort v} {δ : Sort w} (f : β → δ) (g : α → β) : α → δ</code><span class=\"sep\"></span><code class=\"docstring\">Function composition, usually written with the infix operator `∘`. A new function is created from\ntwo existing functions, where one function's output is used as input to the other.\n\nExamples:\n * `Function.comp List.reverse (List.drop 2) [3, 2, 4, 1] = [1, 4]`\n * `(List.reverse ∘ List.drop 2) [3, 2, 4, 1] = [1, 4]`\n\n\nConventions for notations in identifiers:\n\n * The recommended spelling of `∘` in identifiers is `comp`.</code>",
- "183":
+ "188":
  "<code>HilbertCurve.normalized_hilbert_curve (i : ℕ) : ℝ → ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">An iteration of the Hilbert curve as ℝ → ℝ × ℝ interpolated\nand scaled to [0, 1] × [0, 1].\n</code>",
- "182":
+ "187":
  "<code>Continuous.{u, v} {X : Type u} {Y : Type v} [TopologicalSpace X] [TopologicalSpace Y] (f : X → Y) : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A function between topological spaces is continuous if the preimage\nof every open set is open. Registered as a structure to make sure it is not unfolded by Lean. </code>",
- "181":
+ "186":
  "<code>HilbertCurve.normal_hilbert_curve_continuous (i : ℕ) : Continuous (normalized_hilbert_curve i)</code><span class=\"sep\"></span><code class=\"docstring\">Each real Hilbert curve is continuous.\n</code>",
- "180":
+ "185":
  "<code>Int.toNat : ℤ → ℕ</code><span class=\"sep\"></span><code class=\"docstring\">Converts an integer into a natural number. Negative numbers are converted to `0`.\n\nExamples:\n* `(7 : Int).toNat = 7`\n* `(0 : Int).toNat = 0`\n* `(-7 : Int).toNat = 0`\n</code>",
+ "184":
+ "<code>normalized_hilbert_curve (i : ℕ) : ℝ → ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">An iteration of the Hilbert curve as ℝ → ℝ × ℝ interpolated\nand scaled to [0, 1] × [0, 1].\n</code>",
+ "183":
+ "<code>True : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`True` is a proposition and has only an introduction rule, `True.intro : True`.\nIn other words, `True` is simply true, and has a canonical proof, `True.intro`\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n</code>",
+ "182":
+ "<code class=\"docstring\">Simplification tactic for expressions in the language of commutative (semi)rings,\nwhich rewrites all ring expressions into a normal form.\n* `ring_nf!` will use a more aggressive reducibility setting to identify atoms.\n* `ring_nf (config := cfg)` allows for additional configuration:\n  * `red`: the reducibility setting (overridden by `!`)\n  * `zetaDelta`: if true, local let variables can be unfolded (overridden by `!`)\n  * `recursive`: if true, `ring_nf` will also recurse into atoms\n* `ring_nf` works as both a tactic and a conv tactic.\n  In tactic mode, `ring_nf at h` can be used to rewrite in a hypothesis.\n\nThis can be used non-terminally to normalize ring expressions in the goal such as\n`⊢ P (x + x + x)` ~&gt; `⊢ P (x * 3)`, as well as being able to prove some equations that\n`ring` cannot because they involve ring reasoning inside a subterm, such as\n`sin (x + y) + sin (y + x) = 2 * sin (x + y)`.\n</code>",
+ "181":
+ "<code>RingHom.id.{u_5} (α : Type u_5) [NonAssocSemiring α] : α →+* α</code><span class=\"sep\"></span><code class=\"docstring\">The identity ring homomorphism from a semiring to itself. </code>",
+ "180":
+ "<code>∀ (m : ℝ) (x : ℝ × ℝ), s • m • x = (RingHom.id ℝ) m • s • x</code><span class=\"sep\"></span><code class=\"docstring\">The proposition that the function commutes with the actions. </code>",
  "18":
  "<code>∀ (p v : R × R),\n  (2 ^ (i + 1) - 1, 2 ^ i - 1) - (v +ᵥ p).swap = (-HilbertCurve.T0) v +ᵥ (2 ^ (i + 1) - 1, 2 ^ i - 1) - p.swap</code>",
  "179":
- "<code>normalized_hilbert_curve (i : ℕ) : ℝ → ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">An iteration of the Hilbert curve as ℝ → ℝ × ℝ interpolated\nand scaled to [0, 1] × [0, 1].\n</code>",
- "178":
- "<code>True : Prop</code><span class=\"sep\"></span><code class=\"docstring\">`True` is a proposition and has only an introduction rule, `True.intro : True`.\nIn other words, `True` is simply true, and has a canonical proof, `True.intro`\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n</code>",
- "177":
- "<code class=\"docstring\">Simplification tactic for expressions in the language of commutative (semi)rings,\nwhich rewrites all ring expressions into a normal form.\n* `ring_nf!` will use a more aggressive reducibility setting to identify atoms.\n* `ring_nf (config := cfg)` allows for additional configuration:\n  * `red`: the reducibility setting (overridden by `!`)\n  * `zetaDelta`: if true, local let variables can be unfolded (overridden by `!`)\n  * `recursive`: if true, `ring_nf` will also recurse into atoms\n* `ring_nf` works as both a tactic and a conv tactic.\n  In tactic mode, `ring_nf at h` can be used to rewrite in a hypothesis.\n\nThis can be used non-terminally to normalize ring expressions in the goal such as\n`⊢ P (x + x + x)` ~&gt; `⊢ P (x * 3)`, as well as being able to prove some equations that\n`ring` cannot because they involve ring reasoning inside a subterm, such as\n`sin (x + y) + sin (y + x) = 2 * sin (x + y)`.\n</code>",
- "176":
- "<code>RingHom.id.{u_5} (α : Type u_5) [NonAssocSemiring α] : α →+* α</code><span class=\"sep\"></span><code class=\"docstring\">The identity ring homomorphism from a semiring to itself. </code>",
- "175":
- "<code>∀ (m : ℝ) (x : ℝ × ℝ), s • m • x = (RingHom.id ℝ) m • s • x</code><span class=\"sep\"></span><code class=\"docstring\">The proposition that the function commutes with the actions. </code>",
- "174":
  "<code>HSMul.hSMul.{u, v, w} {α : Type u} {β : Type v} {γ : outParam (Type w)} [self : HSMul α β γ] : α → β → γ</code><span class=\"sep\"></span><code class=\"docstring\">`a • b` computes the product of `a` and `b`.\nThe meaning of this notation is type-dependent, but it is intended to be used for left actions. \n\nConventions for notations in identifiers:\n\n * The recommended spelling of `•` in identifiers is `smul`.</code>",
- "173":
+ "178":
  "<code>Real : Type</code><span class=\"sep\"></span><code class=\"docstring\">The type `ℝ` of real numbers constructed as equivalence classes of Cauchy sequences of rational\nnumbers. </code>",
- "172":
+ "177":
  "<code>∀ (x y : ℝ × ℝ), s • (x + y) = s • x + s • y</code><span class=\"sep\"></span><code class=\"docstring\">The proposition that the function preserves addition </code>",
- "171": "<code>ℝ × ℝ</code>",
- "170":
+ "176": "<code>ℝ × ℝ</code>",
+ "175":
  "<code>ℝ × ℝ → ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">The underlying function </code>",
+ "174":
+ "<code>LinearMap.toContinuousLinearMap.{u, v, x} {𝕜 : Type u} [hnorm : NontriviallyNormedField 𝕜] {E : Type v} [AddCommGroup E]\n  [Module 𝕜 E] [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul 𝕜 E] {F' : Type x} [AddCommGroup F']\n  [Module 𝕜 F'] [TopologicalSpace F'] [IsTopologicalAddGroup F'] [ContinuousSMul 𝕜 F'] [CompleteSpace 𝕜] [T2Space E]\n  [FiniteDimensional 𝕜 E] : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F'</code><span class=\"sep\"></span><code class=\"docstring\">The continuous linear map induced by a linear map on a finite dimensional space </code>",
+ "173":
+ "<code>scale (s : ℝ) : ℝ × ℝ →L[ℝ] ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">scale is smul as a LinearMap\n</code>",
+ "172":
+ "<code>interpolate_distance (f : ℤ → ℝ × ℝ) (t : ℝ) :\n  dist (interpolate_points f t) (interpolate_points f ↑⌊t⌋) ≤ dist (f ⌊t⌋) (f (⌊t⌋ + 1))</code><span class=\"sep\"></span><code class=\"docstring\">The distance of the interpolation from the beginnning is less than\nthe distance between points.\n</code>",
+ "171":
+ "<code>interpolate_is_continuous (f : ℤ → ℝ × ℝ) : Continuous (interpolate_points f)</code><span class=\"sep\"></span><code class=\"docstring\">Interpolation is continuous\n</code>",
+ "170":
+ "<code>interpolate_map' (f : ℤ → ℝ × ℝ) (g : ℝ × ℝ →ₗ[ℝ] ℝ × ℝ) : interpolate_points (⇑g ∘ f) = ⇑g ∘ interpolate_points f</code>",
  "17":
  "<code>HilbertCurve.T0.{u_1} {R : Type u_1} [Ring R] : R × R →ₗ[R] R × R</code>",
  "169":
- "<code>LinearMap.toContinuousLinearMap.{u, v, x} {𝕜 : Type u} [hnorm : NontriviallyNormedField 𝕜] {E : Type v} [AddCommGroup E]\n  [Module 𝕜 E] [TopologicalSpace E] [IsTopologicalAddGroup E] [ContinuousSMul 𝕜 E] {F' : Type x} [AddCommGroup F']\n  [Module 𝕜 F'] [TopologicalSpace F'] [IsTopologicalAddGroup F'] [ContinuousSMul 𝕜 F'] [CompleteSpace 𝕜] [T2Space E]\n  [FiniteDimensional 𝕜 E] : (E →ₗ[𝕜] F') ≃ₗ[𝕜] E →L[𝕜] F'</code><span class=\"sep\"></span><code class=\"docstring\">The continuous linear map induced by a linear map on a finite dimensional space </code>",
+ "<code>interpolate_map (f : ℤ → ℝ × ℝ) (g : ℝ × ℝ →ᵃ[ℝ] ℝ × ℝ) : interpolate_points (⇑g ∘ f) = ⇑g ∘ interpolate_points f</code><span class=\"sep\"></span><code class=\"docstring\">Affine maps applied to interpolation is equivalent to interpolation\napplied to affine map.\n</code>",
  "168":
- "<code>scale (s : ℝ) : ℝ × ℝ →L[ℝ] ℝ × ℝ</code><span class=\"sep\"></span><code class=\"docstring\">scale is smul as a LinearMap\n</code>",
+ "<code>Set.Accumulate.{u_1, u_2} {α : Type u_1} {β : Type u_2} [LE α] (s : α → Set β) (x : α) : Set β</code><span class=\"sep\"></span><code class=\"docstring\">`Accumulate s` is the union of `s y` for `y ≤ x`. </code>",
  "167":
+ "<code>interpolate_preserves (f : ℤ → ℝ × ℝ) (s : Set (ℝ × ℝ)) :\n  Set.MapsTo f Set.univ s → Set.MapsTo (interpolate_points f) Set.univ ((convexHull ℝ) s)</code><span class=\"sep\"></span><code class=\"docstring\">Interpolation preserves containment up to convexity\n</code>",
+ "166":
+ "<code>interpolate_section (i : ℤ) (f : ℤ → ℝ × ℝ) :\n  interpolate_points f '' Set.Icc ↑i ↑(i + 1) = segment ℝ (interpolate_points f ↑i) (interpolate_points f ↑(i + 1))</code>",
+ "165":
+ "<code>interpolate_eq_affine_map (f : ℤ → ℝ × ℝ) (n : ℤ) (t : ℝ) (h : ↑n ≤ t) (h' : t ≤ ↑n + 1) :\n  interpolate_points f t = (AffineMap.lineMap (f n) (f (n + 1))) (t - ↑n)</code><span class=\"sep\"></span><code class=\"docstring\">Interpolation on each interval is equal to the affine map.\n</code>",
+ "164":
+ "<code>interpolate_add' (i : ℤ) (f : ℤ → ℝ × ℝ) :\n  (interpolate_points f ∘ fun x =&gt; x + ↑i) = interpolate_points (f ∘ fun x =&gt; x + i)</code>",
+ "163":
+ "<code>interpolate_add (i : ℤ) (f : ℤ → ℝ × ℝ) (t : ℝ) :\n  interpolate_points f (t + ↑i) = interpolate_points (f ∘ fun x =&gt; x + i) t</code><span class=\"sep\"></span><code class=\"docstring\">Shifting an interpolation's domain is equivalent to shifting\nthe input map's.\n</code>",
+ "162":
+ "<code>interpolate_interpolates (f : ℤ → ℝ × ℝ) (i : ℤ) : f i = interpolate_points f ↑i</code><span class=\"sep\"></span><code class=\"docstring\">Interpolation matches at each point.\n</code>",
+ "161":
  "<code>AffineMap.lineMap.{u_1, u_2, u_3} {k : Type u_1} {V1 : Type u_2} {P1 : Type u_3} [Ring k] [AddCommGroup V1]\n  [Module k V1] [AddTorsor V1 P1] (p₀ p₁ : P1) : k →ᵃ[k] P1</code><span class=\"sep\"></span><code class=\"docstring\">The affine map from `k` to `P1` sending `0` to `p₀` and `1` to `p₁`. </code>",
- "166": "<code>ℤ</code>",
- "165": "<code>ℝ</code>",
- "164": "<code>ℤ → ℝ × ℝ</code>",
- "163": "<code>interpolate_points (f : ℤ → ℝ × ℝ) (t : ℝ) : ℝ × ℝ</code>",
- "162": "<code>IsStrictOrderedRing α</code>",
- "161": "<code>Ring α</code>",
- "160": "<code>PartialOrder α</code>",
+ "160": "<code>ℤ</code>",
  "16": "<code>R × R →ₗ[R] R × R</code>",
- "159":
- "<code>IsOrderedRing.{u_1} (R : Type u_1) [Semiring R] [PartialOrder R] : Prop</code><span class=\"sep\"></span><code class=\"docstring\">An ordered semiring is a semiring with a partial order such that addition is monotone and\nmultiplication by a nonnegative number is monotone. </code>",
- "158":
- "<code>IsStrictOrderedRing.{u_1} (R : Type u_1) [Semiring R] [PartialOrder R] : Prop</code><span class=\"sep\"></span><code class=\"docstring\">A strict ordered semiring is a nontrivial semiring with a partial order such that addition is\nstrictly monotone and multiplication by a positive number is strictly monotone. </code>",
- "157":
- "<code>PartialOrder.{u_2} (α : Type u_2) : Type u_2</code><span class=\"sep\"></span><code class=\"docstring\">A partial order is a reflexive, transitive, antisymmetric relation `≤`. </code>",
- "156": "<code>Type</code>",
+ "159": "<code>ℝ</code>",
+ "158": "<code>ℤ → ℝ × ℝ</code>",
+ "157": "<code>interpolate_points (f : ℤ → ℝ × ℝ) (t : ℝ) : ℝ × ℝ</code>",
+ "156": "<code>ZtimesZ.toR : ℤ × ℤ → ℝ × ℝ</code>",
  "155":
  "<code>ℕ × ℕ → R × R</code><span class=\"sep\"></span><code class=\"docstring\">Coerces a value of type `α` to type `β`. Accessible by the notation `↑x`,\nor by double type ascription `((x : α) : β)`. </code>",
  "154":
