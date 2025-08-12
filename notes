@@ -12,6 +12,4 @@ style attributes, etc.
 
 - To publish elsewhere I had to modify the HTML -verso-css and -verso-js links manually.
 
-- The titles reference Verso in the headers.
-
 - If I'm not using the full blog website, then building both is slightly annoying since they both want to go to `_site`. I'm sure there is configuration for this somewhere...
