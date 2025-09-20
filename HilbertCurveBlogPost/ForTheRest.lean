@@ -12,7 +12,7 @@ set_option maxHeartbeats 800000
 
 #doc (Page) "Hilbert Curves" =>
 
-> "Everyone understands what a curve is, until they study enough math to become confused." -- Matt Iverson's friend from highschool?
+> "Everyone knows what a curve is, until he has studied enough mathematics to become confused through the countless number of possible exceptions."  -- Felix Klein
 
 In the limit, the Hilbert curve is a weird fractal that curves around to completely fill up a square $`[0, 1] \times [0, 1]`. To those who haven't internalized analysis, a full informal proof may scare one by referencing uniform convergence and Cauchy sequences, but I hope the gist is understandable enough. Given that correctness of the Hilbert curve requires such depth, it seemed like a good test case to formalize in the programming language [Lean](https://lean-lang.org), so we can see the difference in theory vs application.
 
